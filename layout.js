@@ -22,15 +22,51 @@ const pixelart =
 "........\n" +
 ".x....x.\n" +
 ".xxxxxx.\n" +
-"........";
+"........\n";
 
 function onDOMReady() {
     updateSVGDisplay();
+    updateEmojiOutput();
+
+    $("#copyOutputButton").click(
+        () => {
+            $("#outputArea")[0].select();
+            document.execCommand("copy");
+        }
+    );
+}
+
+let emojimapping = {
+    ".": "⛄",
+    "x": "🙃"
+}
+
+let emojiRows = null;
+let emojiColumns = null;
+
+function generateEmoji(mapping) {
+    let lines = pixelart.replace(/\n+$/, "").split("\n");
+    emojiRows = lines.length;
+    emojiColumns = lines[0].length;
+    let output = "";
+    for (let line of lines) {
+        for (let char of line) {
+            output += mapping[char];
+        }
+        output += "\n";
+    }
+    return output;
+}
+
+function updateEmojiOutput() {
+    $("#outputArea")[0].value = generateEmoji(emojimapping);
+    $("#outputArea")[0].setAttribute("cols", emojiColumns);
+    $("#outputArea")[0].setAttribute("rows", emojiRows);
 }
 
 function updateSVGDisplay() {
     $("#svgPixels")[0].innerHTML = "";
-    let lines = pixelart.split("\n");
+    let lines = pixelart.replace(/\n+$/, "").split("\n");
     let colormap = {".": "rgb(181,186,253)", "x": "rgb(63,72,204)"};
     let scale = 80;
 
