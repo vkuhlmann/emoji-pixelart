@@ -17,6 +17,10 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="bootstrap-5.0.0-beta1-dist/js/bootstrap.min.js"></script>
+    <!-- <script src="lib/bmp-js/decoder.js"></script>
+    <script src="lib/bmp-js/encoder.js"></script> -->
+    <!-- <script src="lib/fast-png/PNGDecoder.ts"></script> -->
+    <script src="lib/UPNG/UPNG.js"></script>
     <script src="layout.js"></script>
 </head>
 
@@ -30,9 +34,16 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
+                <ul class="navbar-nav mr-auto" style="gap:10px;">
                     <li class="nav-item active">
-                        <a class="nav-link" href="#">Home <span class="non-visual-context">(current)</span></a>
+                        <a class="nav-link" href="#">WIP</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <button type="button" class="button-toggle" id="importImage"
+                            style="display:flex;flex-flow:row nowrap;align-items:center;">
+                            <span style="margin-left:5px;">Import image</span>
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -57,6 +68,31 @@
             </div>
         </div>
 
+        <div id="importImageOverlay" class="overlay-container" style="display:none;flex-flow:row wrap;justify-content:center;align-items:center;
+        align-content:center;">
+            <div class="card overlay-card" style="width:40rem;width:min(90vw,40rem);">
+                <div class="card-body">
+                    <h5 class="card-title">Import png image</h5>
+                    <p class="card-text">
+                        Upload your png here.
+                    </p>
+
+                    <form id="fileImportForm">
+                        <div class="form-group" style="margin-bottom:10px;">
+                            <label for="selectedImportFile">Choose image to import</label>
+                            <input class="form-control" id="selectedImportFile" type="file" accept=".png">
+                        </div>
+                        <!--<div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="clearOnImport" autocomplete="off" checked="checked">
+                            <label class="form-check-label" for="clearOnImport">Clear current scene</label>
+                        </div>-->
+                        <div class="form-group">
+                            <button id="doFileImport" class="button-action form-control" type="submit">Import</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 
