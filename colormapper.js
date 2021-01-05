@@ -42,15 +42,28 @@ class ColorMapperEntry {
         this.color.value = color;
         //$("[data-binding=centerpoint]", obj.el)[0].style.fill = obj.color;
         updateBinding(this, "color");
+        this.parent.toColor[this.paletteColorID] = this.color.value;
+        updateSVGDisplay();
+
         delete this.color.suppressSet;
     };
+
+    setEmoji(emoji) {
+        this.emoji = emoji;
+        //$("[data-binding=centerpoint]", obj.el)[0].style.fill = obj.color;
+        updateBinding(this, "emoji");
+        this.parent.toEmoji[this.paletteColorID] = this.emoji;
+        updateEmojiOutput();
+    }
 }
 
-class ColorMapperGUI {
+class Mapper {
     constructor(el, onUpdate) {
         this.el = el;
         this.el.classList.add("colormapper");
         this.onUpdate = onUpdate;
+        this.toColor = {};
+        this.toEmoji = {};
 
         this.items = [];
 
@@ -65,11 +78,11 @@ class ColorMapperGUI {
     }
 
     update() {
-        this.toColors = colormap;
+        //this.toColors = colormap;
         this.clear();
         let i = 0;
-        for (let id in this.toColors) {
-            this.add({ color: this.toColors[id], value: `${id}`, "id": id, "emoji": emojimapping[id]});
+        for (let id in this.toColor) {
+            this.add({ color: this.toColor[id], value: `${id}`, "id": id, "emoji": this.toEmoji[id]});
             i += 1;
         }
     }

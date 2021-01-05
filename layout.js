@@ -24,6 +24,8 @@ let pixelartText =
     ".xxxxxx.\n" +
     "........\n";
 
+let mapper = null;
+
 let pixelart = pixelartText.replace(/\n+$/, "").split("\n");
 
 let emojimapping = {
@@ -32,9 +34,14 @@ let emojimapping = {
 }
 
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
-let colormapper = null;
 
 function onDOMReady() {
+    mapper = new Mapper($("#mapper")[0]);
+    //mapper.setToColorMapping(colormap);
+    mapper.toColor = colormap;
+    mapper.toEmoji = emojimapping;
+    mapper.update();
+
     updateSVGDisplay();
     updateEmojiOutput();
 
@@ -46,9 +53,6 @@ function onDOMReady() {
     );
 
     setupOverlay();
-    colormapper = new ColorMapperGUI($("#colorMapper")[0]);
-    //colormapper.setToColorMapping(colormap);
-    colormapper.update();
 }
 
 function colorFromUINT(u) {
@@ -88,23 +92,24 @@ function interpretImage(data, width, height) {
     // console.log(colors);
 
     pixelart = content;
-    emojimapping[0] = emojimapping["."];
+    mapper.toEmoji[0] = mapper.toEmoji["."];
     //colormap[0] = colormap["."];
     colormap = {};
-    colormap[0] = colorFromUINT(colors[0]);
+    mapper.toColor = {};
+    mapper.toColor[0] = colorFromUINT(colors[0]);
 
     for (let i = 1; i < colors.length; i++) {
-        emojimapping[i] = emojimapping["x"];
+        mapper.toEmoji[i] = mapper.toEmoji["x"];
         //colormap[i] = colormap["x"];
-        colormap[i] = colorFromUINT(colors[i]);
+        mapper.toColor[i] = colorFromUINT(colors[i]);
     }
 
     updateSVGDisplay();
     updateEmojiOutput();
 
-    //colormapper.setColors(colors);
-    //colormapper.setToColorMapping(colormap);
-    colormapper.update();
+    //mapper.setColors(colors);
+    //mapper.setToColorMapping(colormap);
+    mapper.update();
 }
 
 
@@ -170,7 +175,7 @@ function generateEmoji(mapping) {
 }
 
 function updateEmojiOutput() {
-    $("#outputArea")[0].value = generateEmoji(emojimapping);
+    $("#outputArea")[0].value = generateEmoji(mapper.toEmoji);
     $("#outputArea")[0].setAttribute("cols", emojiColumns);
     $("#outputArea")[0].setAttribute("rows", emojiRows);
 }
@@ -194,9 +199,9 @@ function updateSVGDisplay() {
             el.setAttribute("height", scale);
             el.setAttribute("x", x * scale);
             el.setAttribute("y", y * scale);
-            el.style.fill = colormap[char];
+            el.style.fill = mapper.toColor[char];
             el.style.strokeWidth = "1px";
-            el.style.stroke = colormap[char];
+            el.style.stroke = mapper.toColor[char];
             $("#svgPixels")[0].appendChild(el);
         }
     }
