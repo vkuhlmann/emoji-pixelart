@@ -22,6 +22,7 @@
     <script src="lib/bmp-js/encoder.js"></script> -->
     <!-- <script src="lib/fast-png/PNGDecoder.ts"></script> -->
     <script src="lib/UPNG/UPNG.js"></script>
+    <script src="colormapper.js"></script>
     <script src="layout.js"></script>
 </head>
 
@@ -65,12 +66,14 @@
                 </svg>
             </svg>
         </div>
-        <div id="configurationPanel"
-            style="flex:1 0 30ch;display:flex;flex-flow:column nowrap;justify-content:stretch;">
+        <div id="configurationPanel" class="configuration-panel">
             <div style="flex:1 0 auto;display:flex;flex-flow:column nowrap;">
                 <textarea class="form-control" id="outputArea" rows="12"
                     style="flex:1 0 auto;display:block;min-height:60%;" readonly="readonly"></textarea>
                 <button type="button" class="button-action" style="flex:0 0 auto;" id="copyOutputButton">Copy</button>
+            </div>
+            <div style="flex:0 0 auto;display:flex;flex-flow:column nowrap;" id="colorMapper">
+
             </div>
         </div>
 
@@ -78,9 +81,9 @@
         align-content:center;">
             <div class="card overlay-card" style="width:40rem;width:min(90vw,40rem);">
                 <div class="card-body">
-                    <h5 class="card-title">Import png image</h5>
+                    <h5 class="card-title">Import image</h5>
                     <p class="card-text">
-                        Upload your png here.
+                        Only png images are supported.
                     </p>
 
                     <form id="fileImportForm">

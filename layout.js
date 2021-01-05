@@ -45,6 +45,7 @@ function onDOMReady() {
     );
 
     setupOverlay();
+    let a = new ColorMapperGUI($("#colorMapper")[0]);
 }
 
 function interpretImage(data, width, height) {
@@ -75,7 +76,7 @@ function interpretImage(data, width, height) {
     pixelart = content;
     emojimapping[0] = emojimapping["."];
     colormap[0] = colormap["."];
-    for(let i = 1; i < colors.length; i++) {
+    for (let i = 1; i < colors.length; i++) {
         emojimapping[i] = emojimapping["x"];
         colormap[i] = colormap["x"];
     }
