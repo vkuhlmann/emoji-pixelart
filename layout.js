@@ -1,6 +1,6 @@
 "use strict"
 
-$(document).ready(function () {
+$(function () {
     onDOMReady();
 });
 
@@ -24,6 +24,8 @@ let pixelartText =
     ".xxxxxx.\n" +
     "........\n";
 
+let mapper = null;
+
 let pixelart = pixelartText.replace(/\n+$/, "").split("\n");
 
 let emojimapping = {
@@ -34,10 +36,16 @@ let emojimapping = {
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
 
 function onDOMReady() {
+    mapper = new Mapper($("#mapper")[0]);
+    //mapper.setToColorMapping(colormap);
+    mapper.toColor = colormap;
+    mapper.toEmoji = emojimapping;
+    mapper.update();
+
     updateSVGDisplay();
     updateEmojiOutput();
 
-    $("#copyOutputButton").click(
+    $("#copyOutputButton").on("click",
         () => {
             $("#outputArea")[0].select();
             document.execCommand("copy");
@@ -47,15 +55,26 @@ function onDOMReady() {
     setupOverlay();
 }
 
+function colorFromUINT(u) {
+    let red = u >>> 24;
+    let green = (u >>> 16) % 256;
+    let blue = (u >>> 8) % 256;
+    let alpha = u % 256;
+    return `rgb(${red}, ${green}, ${blue})`;
+}
+
 function interpretImage(data, width, height) {
-    let uints = new Uint32Array(data[0]);
+    //let uints = new Uint32Array(data[0]);
+    let bytes = new Uint8Array(data[0]);
     //console.log(bytes);
     let colorsToIDs = {};
     let colors = [];
     let content = [];
     let currentLine = [];
 
-    for (let u of uints) {
+    for (let i = 0; i < bytes.length; i += 4) {
+        let u = (bytes[i] << 24) | (bytes[i + 1] << 16) | (bytes[i + 2] << 8) | bytes[i + 3];
+
         let id = colorsToIDs[u];
         if (id == null) {
             id = colors.length;
@@ -73,15 +92,24 @@ function interpretImage(data, width, height) {
     // console.log(colors);
 
     pixelart = content;
-    emojimapping[0] = emojimapping["."];
-    colormap[0] = colormap["."];
-    for(let i = 1; i < colors.length; i++) {
-        emojimapping[i] = emojimapping["x"];
-        colormap[i] = colormap["x"];
+    mapper.toEmoji[0] = mapper.toEmoji["."];
+    //colormap[0] = colormap["."];
+    colormap = {};
+    mapper.toColor = {};
+    mapper.toColor[0] = colorFromUINT(colors[0]);
+
+    for (let i = 1; i < colors.length; i++) {
+        mapper.toEmoji[i] = mapper.toEmoji["x"];
+        //colormap[i] = colormap["x"];
+        mapper.toColor[i] = colorFromUINT(colors[i]);
     }
 
     updateSVGDisplay();
     updateEmojiOutput();
+
+    //mapper.setColors(colors);
+    //mapper.setToColorMapping(colormap);
+    mapper.update();
 }
 
 
@@ -111,11 +139,11 @@ function setupOverlay() {
         e.preventDefault();
     });
 
-    $("#importImageOverlay").click((e) => {
+    $("#importImageOverlay").on("click", (e) => {
         $("#importImageOverlay").hide();
     });
 
-    $("#importImage").click((e) => {
+    $("#importImage").on("click", (e) => {
         //console.log("Clicked");
         $("#importImageOverlay").show();
         $("#importImageOverlay")[0].style.display = "flex";
@@ -123,7 +151,7 @@ function setupOverlay() {
 
     $(".overlay-container").hide();
 
-    $(".overlay-card").click((e) => {
+    $(".overlay-card").on("click", (e) => {
         e.stopPropagation();
         //e.preventDefault();
     });
@@ -147,7 +175,7 @@ function generateEmoji(mapping) {
 }
 
 function updateEmojiOutput() {
-    $("#outputArea")[0].value = generateEmoji(emojimapping);
+    $("#outputArea")[0].value = generateEmoji(mapper.toEmoji);
     $("#outputArea")[0].setAttribute("cols", emojiColumns);
     $("#outputArea")[0].setAttribute("rows", emojiRows);
 }
@@ -171,9 +199,9 @@ function updateSVGDisplay() {
             el.setAttribute("height", scale);
             el.setAttribute("x", x * scale);
             el.setAttribute("y", y * scale);
-            el.style.fill = colormap[char];
+            el.style.fill = mapper.toColor[char];
             el.style.strokeWidth = "1px";
-            el.style.stroke = colormap[char];
+            el.style.stroke = mapper.toColor[char];
             $("#svgPixels")[0].appendChild(el);
         }
     }
