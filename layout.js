@@ -47,7 +47,8 @@ function onDOMReady() {
 
     setupOverlay();
     colormapper = new ColorMapperGUI($("#colorMapper")[0]);
-    colormapper.setToColorMapping(colormap);
+    //colormapper.setToColorMapping(colormap);
+    colormapper.update();
 }
 
 function colorFromUINT(u) {
@@ -102,7 +103,8 @@ function interpretImage(data, width, height) {
     updateEmojiOutput();
 
     //colormapper.setColors(colors);
-    colormapper.setToColorMapping(colormap);
+    //colormapper.setToColorMapping(colormap);
+    colormapper.update();
 }
 
 

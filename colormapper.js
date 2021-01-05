@@ -7,7 +7,7 @@ colorMapEntry.innerHTML = `
         <input type="color" data-binding="color" id="mappingColor" name="mappingColor" value="#ff0000">
     </div>
     <div class="mapping-details">
-        <input type="text" class="form-control" data-binding="label" />
+        <input type="text" class="form-control" data-binding="emoji" />
     </div>
 </div>
 `;
@@ -23,7 +23,7 @@ class ColorMapperEntry {
         this.el = el;
         this.parent = parent;
         this.color = {value: desc.color || "red"};
-        this.label = desc["value"] ?? "Unknown";
+        this.emoji = desc["emoji"] ?? "x";
         this.paletteColorID = desc["id"];
 
         //setBinding(el, "label", `${label}`);
@@ -64,12 +64,12 @@ class ColorMapperGUI {
         this.el.innerHTML = "";
     }
 
-    setToColorMapping(toColors) {
-        this.toColors = toColors;
+    update() {
+        this.toColors = colormap;
         this.clear();
         let i = 0;
         for (let id in this.toColors) {
-            this.add({ color: this.toColors[id], value: `${id}`, "id": id});
+            this.add({ color: this.toColors[id], value: `${id}`, "id": id, "emoji": emojimapping[id]});
             i += 1;
         }
     }
