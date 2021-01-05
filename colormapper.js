@@ -3,9 +3,11 @@
 let colorMapEntry = document.createElement("template");
 colorMapEntry.innerHTML = `
 <div class="colormapper-entry">
-    <div class="mapping-color"></div>
+    <div class="mapping-color-holder">
+        <input type="color" data-binding="color" id="mappingColor" name="mappingColor" value="#ff0000">
+    </div>
     <div class="mapping-details">
-        <span data-binding="lightName">Light name</span>
+        <input type="text" class="form-control" data-binding="label" />
     </div>
 </div>
 `;
@@ -16,29 +18,75 @@ function setBinding(el, bindName, bindValue) {
     }
 }
 
+class ColorMapperEntry {
+    constructor(el, parent, desc) {
+        this.el = el;
+        this.parent = parent;
+        this.color = {value: desc.color || "red"};
+        this.label = desc["value"] ?? "Unknown";
+        this.paletteColorID = desc["id"];
+
+        //setBinding(el, "label", `${label}`);
+        bindElements(el, [this]);
+    }
+
+    static Create(parent, desc) {
+        let el = colorMapEntry.content.children[0].cloneNode(true);
+        return new ColorMapperEntry(el, parent, desc);
+    }
+
+    setColor(color) {
+        if (this.color.suppressSet)
+            return;
+        this.color.suppressSet = true;
+        this.color.value = color;
+        //$("[data-binding=centerpoint]", obj.el)[0].style.fill = obj.color;
+        updateBinding(this, "color");
+        delete this.color.suppressSet;
+    };
+}
+
 class ColorMapperGUI {
-    constructor(el) {
+    constructor(el, onUpdate) {
         this.el = el;
         this.el.classList.add("colormapper");
+        this.onUpdate = onUpdate;
+
+        this.items = [];
 
         this.clear();
-        this.add(1, { name: "Hey" });
-        this.add(2, { name: "daar" });
+        this.add({ value: "AA" });
+        this.add({ color: "green", value: "BB" });
     }
 
     clear() {
+        this.items = [];
         this.el.innerHTML = "";
     }
 
-    add(lightID, desc) {
-        let el = colorMapEntry.content.children[0].cloneNode(true);
-        let lightName = desc["name"] ?? "Unknown";
+    setToColorMapping(toColors) {
+        this.toColors = toColors;
+        this.clear();
+        let i = 0;
+        for (let id in this.toColors) {
+            this.add({ color: this.toColors[id], value: `${id}`, "id": id});
+            i += 1;
+        }
+    }
 
-        // $("[data-binding=\"lightID\"]", el).each(index => {$(this).innerText = lightID;});
-        // $("[data-binding=\"lightName\"]", el).each(index => {$(this).innerText = lightName;});
-        //setBinding(el, "lightID", `${lightID}`);
-        setBinding(el, "lightName", `${lightName}`);
+    setColors(colors) {
+        this.colors = colors;
+        this.clear();
+        let i = 0;
+        for (let u of this.colors) {
+            this.add({ color: u, value: `${i}`});
+            i += 1;
+        }
+    }
 
-        this.el.appendChild(el);
+    add(desc) {
+        let entry = ColorMapperEntry.Create(this, desc);
+        this.items.push(entry);
+        this.el.appendChild(entry.el);
     }
 }

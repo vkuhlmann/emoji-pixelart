@@ -130,24 +130,27 @@
 }
 
 .colormapper {
+    .card();
+    padding: 8px;
     display: flex;
     flex-flow: column wrap;
     flex: 0 0 auto;
-    gap: 2px;
+    gap: 8px;
 }
 
 .colormapper-entry {
-    .card();
     display: flex;
     flex-flow: row nowrap;
+    align-items: center;
     padding: 0px;
-    gap: 10px;
+    gap: 5px;
 }
 
-.mapping-color {
+.mapping-color-holder {
     //background-color:hsl(0, 90%, 70%);
     background-color: hsl(0, 90%, 90%);
-    padding: 2px;
+    padding: 0px;
+    line-height: 1.0;
     min-width: 30px;
     display: flex;
     flex-flow: row nowrap;
@@ -158,7 +161,7 @@
 }
 
 .mapping-details {
-    padding-right: 0.5rem;
+    //padding-right: 0.5rem;
 }
 
 .configuration-panel {

@@ -1,6 +1,6 @@
 "use strict"
 
-$(document).ready(function () {
+$(function () {
     onDOMReady();
 });
 
@@ -32,12 +32,13 @@ let emojimapping = {
 }
 
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
+let colormapper = null;
 
 function onDOMReady() {
     updateSVGDisplay();
     updateEmojiOutput();
 
-    $("#copyOutputButton").click(
+    $("#copyOutputButton").on("click",
         () => {
             $("#outputArea")[0].select();
             document.execCommand("copy");
@@ -45,18 +46,30 @@ function onDOMReady() {
     );
 
     setupOverlay();
-    let a = new ColorMapperGUI($("#colorMapper")[0]);
+    colormapper = new ColorMapperGUI($("#colorMapper")[0]);
+    colormapper.setToColorMapping(colormap);
+}
+
+function colorFromUINT(u) {
+    let red = u >>> 24;
+    let green = (u >>> 16) % 256;
+    let blue = (u >>> 8) % 256;
+    let alpha = u % 256;
+    return `rgb(${red}, ${green}, ${blue})`;
 }
 
 function interpretImage(data, width, height) {
-    let uints = new Uint32Array(data[0]);
+    //let uints = new Uint32Array(data[0]);
+    let bytes = new Uint8Array(data[0]);
     //console.log(bytes);
     let colorsToIDs = {};
     let colors = [];
     let content = [];
     let currentLine = [];
 
-    for (let u of uints) {
+    for (let i = 0; i < bytes.length; i += 4) {
+        let u = (bytes[i] << 24) | (bytes[i + 1] << 16) | (bytes[i + 2] << 8) | bytes[i + 3];
+
         let id = colorsToIDs[u];
         if (id == null) {
             id = colors.length;
@@ -75,14 +88,21 @@ function interpretImage(data, width, height) {
 
     pixelart = content;
     emojimapping[0] = emojimapping["."];
-    colormap[0] = colormap["."];
+    //colormap[0] = colormap["."];
+    colormap = {};
+    colormap[0] = colorFromUINT(colors[0]);
+
     for (let i = 1; i < colors.length; i++) {
         emojimapping[i] = emojimapping["x"];
-        colormap[i] = colormap["x"];
+        //colormap[i] = colormap["x"];
+        colormap[i] = colorFromUINT(colors[i]);
     }
 
     updateSVGDisplay();
     updateEmojiOutput();
+
+    //colormapper.setColors(colors);
+    colormapper.setToColorMapping(colormap);
 }
 
 
@@ -112,11 +132,11 @@ function setupOverlay() {
         e.preventDefault();
     });
 
-    $("#importImageOverlay").click((e) => {
+    $("#importImageOverlay").on("click", (e) => {
         $("#importImageOverlay").hide();
     });
 
-    $("#importImage").click((e) => {
+    $("#importImage").on("click", (e) => {
         //console.log("Clicked");
         $("#importImageOverlay").show();
         $("#importImageOverlay")[0].style.display = "flex";
@@ -124,7 +144,7 @@ function setupOverlay() {
 
     $(".overlay-container").hide();
 
-    $(".overlay-card").click((e) => {
+    $(".overlay-card").on("click", (e) => {
         e.stopPropagation();
         //e.preventDefault();
     });
