@@ -19,7 +19,7 @@ function setBinding(el, bindName, bindValue) {
 class ColorMapperGUI {
     constructor(el) {
         this.el = el;
-        this.el.classList.add("color-mapper");
+        this.el.classList.add("colormapper");
 
         this.clear();
         this.add(1, { name: "Hey" });
