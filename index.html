@@ -12,6 +12,7 @@
     <link rel="stylesheet/less" type="text/css" href="main-style.less" />
     <!--<script src="//cdn.jsdelivr.net/npm/less"></script>-->
     <script src="less.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -25,16 +26,18 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">Emoji pixelart</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+            <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
-            </button>
+            </button>-->
 
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav mr-auto" style="gap:10px;">
+            <!--<div class="collapse navbar-collapse" id="navbarSupportedContent">-->
+            <div class="navbar-nav" style="flex:1 1 auto;">
+                <!-- class="navbar-nav mr-auto" style="gap:10px;" -->
+                <ul class="toolbar-content">
                     <li class="nav-item active">
                         <a class="nav-link" href="#">WIP</a>
                     </li>
@@ -47,13 +50,14 @@
                     </li>
                 </ul>
             </div>
+            <!--</div>-->
         </div>
     </nav>
 
-    <div class="container-fluid;" style="padding:20px 15px;display:flex;flex-flow:row nowrap;align-items:flex-start;gap:10px;align-items:stretch;">
-        <div id="pixelartPanel" style="flex:1 1 auto;">
+    <div class="container-fluid panels-container">
+        <div id="pixelartPanel" class="pixelart-panel" style="flex:1 1 auto;">
             <svg style="width:100%;height:85vh;" id="pixelartSvg">
-                <rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />
+                <!--<rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />-->
                 <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg">
                     <g id="svgPixels">
 
@@ -61,9 +65,11 @@
                 </svg>
             </svg>
         </div>
-        <div id="configurationPanel" style="flex:1 0 30ch;display:flex;flex-flow:column nowrap;justify-content:stretch;">
+        <div id="configurationPanel"
+            style="flex:1 0 30ch;display:flex;flex-flow:column nowrap;justify-content:stretch;">
             <div style="flex:1 0 auto;display:flex;flex-flow:column nowrap;">
-                <textarea class="form-control" id="outputArea" rows="12" style="flex:1 0 auto;display:block;min-height:60%;" readonly="readonly"></textarea>
+                <textarea class="form-control" id="outputArea" rows="12"
+                    style="flex:1 0 auto;display:block;min-height:60%;" readonly="readonly"></textarea>
                 <button type="button" class="button-action" style="flex:0 0 auto;" id="copyOutputButton">Copy</button>
             </div>
         </div>
