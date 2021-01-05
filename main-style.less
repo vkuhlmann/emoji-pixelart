@@ -123,6 +123,7 @@
     list-style: none;
     gap: 30px;
     margin: 0px;
+    padding-left: 0px;
 }
 
 .pixelart-panel {
@@ -170,4 +171,32 @@
     flex-flow: column nowrap;
     justify-content: stretch;
     gap: 10px;
+}
+
+.coloroption {
+    padding: 0.4rem;
+
+    .colordisplay {
+        display: block;
+        width: 2rem;
+        height: 2rem;
+        padding: 0.5rem;
+        border-radius: .15rem;
+        background-color: red;
+    }
+
+    &.coloroption-selected {
+        background-color: #fff;
+        //border: 3px solid black;
+        border-radius: 0.25rem;
+        box-shadow: 0 0 0pt 1.5pt hsl(22, 100%, 60%);
+    }
+}
+
+.colorselector {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    align-content: center;
+    gap: 0.1rem;
 }

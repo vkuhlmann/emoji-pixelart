@@ -42,6 +42,8 @@ function onDOMReady() {
     mapper.toEmoji = emojimapping;
     mapper.update();
 
+    diagram = new Diagram();
+
     updateSVGDisplay();
     updateEmojiOutput();
 
@@ -53,6 +55,23 @@ function onDOMReady() {
     );
 
     setupOverlay();
+
+    printCoordOnDiagramClick();
+
+    new ColorSelector();
+
+
+    // $("#drawingContainerSvg")[0].addEventListener("click", 
+    //     (e) => {
+    //         let rect = $("#drawingContainerSvg")[0].getBoundingClientRect();
+    //         let offsetX = e.clientX - rect.left;
+    //         let offsetY = e.clientY - rect.top;
+    //         let scale = 80.0;
+    //         let x = Math.floor(offsetX / scale);
+    //         let y = Math.floor(offsetY / scale);
+    //         console.log(`Hit tile (${x}, ${y})`);
+    //     }
+    // );
 }
 
 function colorFromUINT(u) {
@@ -181,28 +200,29 @@ function updateEmojiOutput() {
 }
 
 function updateSVGDisplay() {
-    $("#svgPixels")[0].innerHTML = "";
-    let lines = pixelart;
-    let scale = 80;
+    diagram.redraw();
+    // $("#svgPixels")[0].innerHTML = "";
+    // let lines = pixelart;
+    // let scale = 80;
 
-    $("#drawingContainerSvg")[0].setAttribute("viewBox", `0 0 ${scale * lines[0].length} ${scale * lines.length}`);
+    // $("#drawingContainerSvg")[0].setAttribute("viewBox", `0 0 ${scale * lines[0].length} ${scale * lines.length}`);
 
-    let y = -1;
-    let x;
-    for (let line of lines) {
-        y += 1;
-        x = -1;
-        for (let char of line) {
-            x += 1;
-            let el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            el.setAttribute("width", scale);
-            el.setAttribute("height", scale);
-            el.setAttribute("x", x * scale);
-            el.setAttribute("y", y * scale);
-            el.style.fill = mapper.toColor[char];
-            el.style.strokeWidth = "1px";
-            el.style.stroke = mapper.toColor[char];
-            $("#svgPixels")[0].appendChild(el);
-        }
-    }
+    // let y = -1;
+    // let x;
+    // for (let line of lines) {
+    //     y += 1;
+    //     x = -1;
+    //     for (let char of line) {
+    //         x += 1;
+    //         let el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    //         el.setAttribute("width", scale);
+    //         el.setAttribute("height", scale);
+    //         el.setAttribute("x", x * scale);
+    //         el.setAttribute("y", y * scale);
+    //         el.style.fill = mapper.toColor[char];
+    //         el.style.strokeWidth = "1px";
+    //         el.style.stroke = mapper.toColor[char];
+    //         $("#svgPixels")[0].appendChild(el);
+    //     }
+    // }
 }

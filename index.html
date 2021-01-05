@@ -25,6 +25,8 @@
     <script src="lib/UPNG/UPNG.js"></script>
     <script src="utils.js"></script>
     <script src="colormapper.js"></script>
+    <script src="diagram.js"></script>
+    <script src="colorSelector.js"></script>
     <script src="layout.js"></script>
 
     <!-- Pickr themes -->
@@ -42,7 +44,7 @@
 <body>
     <nav class="navbar navbar-light bg-light">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/">Emoji pixelart</a>
+            <!-- <a class="navbar-brand" href="/">Emoji pixelart</a> -->
             <!--<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -52,9 +54,9 @@
             <div class="navbar-nav" style="flex:1 1 auto;">
                 <!-- class="navbar-nav mr-auto" style="gap:10px;" -->
                 <ul class="toolbar-content">
-                    <li class="nav-item active">
+                    <!-- <li class="nav-item active">
                         <a class="nav-link" href="#">WIP</a>
-                    </li>
+                    </li> -->
 
                     <li class="nav-item">
                         <button type="button" class="button-toggle" id="importImage"
@@ -62,8 +64,17 @@
                             <span style="margin-left:5px;">Import image</span>
                         </button>
                     </li>
+
+                    <li class="nav-item colorselector" id="colorSelector">
+                        <!--<button type="button" class="button-toggle" id="importImage"
+                            style="display:flex;flex-flow:row nowrap;align-items:center;">
+                            <span style="margin-left:5px;">Import image</span>
+                        </button>-->
+
+                    </li>
                 </ul>
             </div>
+            <a class="navbar-brand" href="/">Emoji pixelart</a>
             <!--</div>-->
         </div>
     </nav>
@@ -72,9 +83,12 @@
         <div id="pixelartPanel" class="pixelart-panel" style="flex:1 1 auto;">
             <svg style="width:100%;height:85vh;" id="pixelartSvg">
                 <!--<rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />-->
-                <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg">
-                    <g id="svgPixels">
+                <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg"
+                    style="touch-action:none;" class="pannable-diagram">
+                    <g id="pannableContent">
+                        <g id="svgPixels">
 
+                        </g>
                     </g>
                 </svg>
             </svg>
