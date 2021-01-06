@@ -70,6 +70,36 @@ function onDOMReady() {
     colorselector = new ColorSelector();
     colorselector.update();
 
+    setupSplitter();
+    
+    // let isResizable = false;
+    // let onPanelsContainerResize = function (e) {
+    //     //console.log(`Window innerWidth is ${window.innerWidth}`);
+    //     if (window.innerWidth > 1100) {
+    //         if (!isResizable) {
+    //             console.log("Adding resizability");
+    //             $("#configurationPanel").resizable({
+    //                 handles: "w"// {e: $("#splitter")[0]}
+    //             });
+    //             $("#configurationPanel")[0].classList.add("resizable");
+    //             isResizable = true;
+    //         }
+    //     } else {
+    //         if (isResizable) {
+    //             console.log("Removing resizability");
+    //             $("#configurationPanel")[0].classList.remove("resizable");
+    //             //$("#pixelartPanel")[0].style.width = "";
+    //             $("#configurationPanel").resizable("destroy");
+    //             isResizable = false;
+    //         }
+    //     }
+    // }
+
+    // //$("#panelsContainer").on("resize", onPanelsContainerResize);
+    // window.addEventListener("resize", onPanelsContainerResize);
+    // onPanelsContainerResize();
+
+
     // $("#drawingContainerSvg")[0].addEventListener("click", 
     //     (e) => {
     //         let rect = $("#drawingContainerSvg")[0].getBoundingClientRect();
@@ -81,6 +111,48 @@ function onDOMReady() {
     //         console.log(`Hit tile (${x}, ${y})`);
     //     }
     // );
+}
+
+// function resetSplitterWidth() {
+
+// }
+
+function setupSplitter() {
+    let el = $("#splitter")[0];
+    let resizePanel = $("#configurationPanel")[0];
+    let capturedPointer = null;
+    let prevPos = null;
+    let prevPanelWidth = null;
+    
+    el.addEventListener("pointerdown", function (event) {
+        el.setPointerCapture(event.pointerId);
+        document.body.style.cursor = "col-resize";
+
+        capturedPointer = event.pointerId;
+        prevPanelWidth = resizePanel.clientWidth;
+        prevPos = event.clientX;
+        event.preventDefault();
+    });
+
+    el.addEventListener("pointermove", function (event) {
+        if (event.pointerId !== capturedPointer)
+            return;
+        let newPos = event.clientX;
+        let newWidth = prevPanelWidth + (prevPos - newPos);
+        resizePanel.style.flex = `1 0 ${newWidth}px`;
+        prevPos = newPos;
+        prevPanelWidth = newWidth;
+        event.preventDefault();
+    });
+
+    el.addEventListener("pointerup", function (event) {
+        if (capturedPointer === event.pointerId) {
+            document.body.style.cursor = "auto";
+            event.target.releasePointerCapture(capturedPointer);
+            capturedPointer = null;
+        }
+        event.preventDefault();
+    });
 }
 
 function colorFromUINT(u) {
@@ -205,7 +277,7 @@ function generateEmoji(mapping) {
 
 function updateEmojiOutput() {
     $("#outputArea")[0].value = generateEmoji(mapper.toEmoji);
-    $("#outputArea")[0].setAttribute("cols", emojiColumns);
+    //$("#outputArea")[0].setAttribute("cols", emojiColumns);
     $("#outputArea")[0].setAttribute("rows", emojiRows);
 }
 
