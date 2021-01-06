@@ -49,6 +49,7 @@ function setNextLabel(val) {
 class Diagram {
     constructor() {
         this.el = $("#drawingContainerSvg")[0];
+        this.svgContent = { el: $("[id=\"svgContent\"]", this.el)[0] };
         this.svgPixels = { el: $("[id=\"svgPixels\"]", this.el)[0] };
         this.pannableContent = { el: $("[id=\"pannableContent\"]", this.el)[0] };
 
@@ -77,12 +78,12 @@ class Diagram {
     }
 
     toSVGSpace(p, calcToSVGTransform = new DOMMatrix()) {
-        let domMat = calcToSVGTransform.preMultiplySelf(this.el.getScreenCTM())
+        let domMat = calcToSVGTransform.preMultiplySelf(this.svgContent.el.getScreenCTM())
         domMat.invertSelf();
         return DOMPoint.fromPoint(p).matrixTransform(domMat);
     }
     toClientSpace(p, calcToSVGTransform = new DOMMatrix()) {
-        let domMat = calcToSVGTransform.preMultiplySelf(this.el.getScreenCTM())
+        let domMat = calcToSVGTransform.preMultiplySelf(this.svgContent.el.getScreenCTM())
         return DOMPoint.fromPoint(p).matrixTransform(domMat);
     }
 
@@ -166,6 +167,17 @@ class Diagram {
             -this.panOffset.y);// * card.diagramView.zoom);
     }
 
+    setPixel(x, y, id) {
+        // if (x < 0 || y < 0 || y >= pixelart.length || x >= pixelart[y].length)
+        //     return false;
+        if (!(x >= 0 && y >= 0 && y < pixelart.length && x < pixelart[y].length))
+            return false;
+        pixelart[y][x] = id;
+        this.redraw();
+        updateEmojiOutput();
+        return true;
+    }
+
     redraw() {
         this.svgPixels.el.innerHTML = "";
         let lines = pixelart;
@@ -212,6 +224,52 @@ function printCoordOnDiagramClick() {
             console.log(`Clicked at tile (${x}, ${y})`);
             // if (addPointButton.getState() == 1)
             //     setDiagramHandle({});
+        },
+        dismiss: function () {
+            //that.untoggle();
+        }
+    });
+}
+
+function paintOnDiagramClick() {
+    let capturedPointer = null;
+    let paintPixel = function (event, pos) {
+        let x = Math.floor(pos.x / diagram.tileSize);
+        let y = Math.floor(pos.y / diagram.tileSize);
+
+        let selected = colorselector.getSingleSelected();
+        if (selected != null)
+            diagram.setPixel(x, y, selected);
+
+        // x = pos.x / diagram.tileSize;
+        // y = pos.y / diagram.tileSize;
+
+        // console.log(`Clicked at tile (${x}, ${y})`);
+        //console.log(`Clicked at tile (${x}, ${y})`);
+        // if (addPointButton.getState() == 1)
+        //     setDiagramHandle({});
+    };
+
+    setDiagramHandle({
+        click: paintPixel,
+        pointerdown: function(event, pos) {
+            diagram.el.setPointerCapture(event.pointerId);
+            capturedPointer = event.pointerId;
+            paintPixel(event, pos);
+            event.preventDefault();
+        },
+        pointerup: function (event, pos) {
+            if (capturedPointer === event.pointerId) {
+                event.target.releasePointerCapture(capturedPointer);
+                capturedPointer = null;
+            }
+            event.preventDefault();
+        },
+        pointermove: function (event, pos) {
+            if (event.pointerId !== capturedPointer)
+                return;
+            paintPixel(event, pos);
+            event.preventDefault();
         },
         dismiss: function () {
             //that.untoggle();

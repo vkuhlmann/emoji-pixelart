@@ -26,7 +26,7 @@
     <script src="utils.js"></script>
     <script src="colormapper.js"></script>
     <script src="diagram.js"></script>
-    <script src="colorSelector.js"></script>
+    <script src="colorselector.js"></script>
     <script src="layout.js"></script>
 
     <!-- Pickr themes -->
@@ -85,9 +85,11 @@
                 <!--<rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />-->
                 <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg"
                     style="touch-action:none;" class="pannable-diagram">
-                    <g id="pannableContent">
-                        <g id="svgPixels">
+                    <g id="svgContent">
+                        <g id="pannableContent">
+                            <g id="svgPixels">
 
+                            </g>
                         </g>
                     </g>
                 </svg>

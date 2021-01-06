@@ -25,8 +25,16 @@ let pixelartText =
     "........\n";
 
 let mapper = null;
+let colorselector = null;
 
 let pixelart = pixelartText.replace(/\n+$/, "").split("\n");
+
+for(let i in pixelart) {
+    let list = [];
+    for (let c of pixelart[i])
+        list.push(c);
+    pixelart[i] = list;
+}
 
 let emojimapping = {
     ".": "⛄",
@@ -56,10 +64,11 @@ function onDOMReady() {
 
     setupOverlay();
 
-    printCoordOnDiagramClick();
+    //printCoordOnDiagramClick();
+    paintOnDiagramClick();
 
-    new ColorSelector();
-
+    colorselector = new ColorSelector();
+    colorselector.update();
 
     // $("#drawingContainerSvg")[0].addEventListener("click", 
     //     (e) => {
@@ -129,6 +138,7 @@ function interpretImage(data, width, height) {
     //mapper.setColors(colors);
     //mapper.setToColorMapping(colormap);
     mapper.update();
+    colorselector.update();
 }
 
 
