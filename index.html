@@ -82,18 +82,19 @@
     <div class="container-fluid">
         <div class="panels-container" id="panelsContainer">
             <div id="pixelartPanel" class="pixelart-panel">
-                <svg style="width:100%;height:100%;" id="pixelartSvg">
+                <svg style="width:100%;height:100%;touch-action:none;" id="pixelartSvg"
+                    preserveAspectRatio="xMinYMid meet" class="pannable-diagram">
                     <!--<rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />-->
-                    <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg"
-                        style="touch-action:none;" class="pannable-diagram">
-                        <g id="svgContent">
-                            <g id="pannableContent">
-                                <g id="svgPixels">
+                    <!--<svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg"
+                        style="touch-action:none;" class="pannable-diagram">-->
+                    <g id="svgContent">
+                        <g id="pannableContent">
+                            <g id="svgPixels">
 
-                                </g>
                             </g>
                         </g>
-                    </svg>
+                    </g>
+                    <!--</svg>-->
                 </svg>
                 <!-- <div id="splitter" class="splitter">
                 </div> -->
