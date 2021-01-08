@@ -48,7 +48,7 @@ function setNextLabel(val) {
 
 class Diagram {
     constructor() {
-        this.el = $("#drawingContainerSvg")[0];
+        this.el = $("#pixelartSvg")[0];
         this.svgContent = { el: $("[id=\"svgContent\"]", this.el)[0] };
         this.svgPixels = { el: $("[id=\"svgPixels\"]", this.el)[0] };
         this.pannableContent = { el: $("[id=\"pannableContent\"]", this.el)[0] };
@@ -305,9 +305,9 @@ class Diagram {
         root.style.setProperty("--pixelsview-atwidth-height", `${rectSvg.width / aspectRatio + rectPanel.width - rectSvg.width}px`);
         root.style.setProperty("--pixelsview-atheight-width", `${rectSvg.height * aspectRatio + rectPanel.height - rectSvg.height}px`);
 
-        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientWidth / aspectRatio}`);
-        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientHeight * aspectRatio} ${$("#pixelartSvg")[0].clientHeight}`);
-        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
+        // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientWidth / aspectRatio}`);
+        // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientHeight * aspectRatio} ${$("#pixelartSvg")[0].clientHeight}`);
+        // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
 
         this.isUpdatingViewSize = false;
         delete this.isUpdatingViewSize;

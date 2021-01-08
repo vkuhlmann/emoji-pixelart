@@ -72,6 +72,8 @@ function onDOMReady() {
 
     setupSplitter();
 
+    window.setTimeout(function() {diagram.updateViewSize();}, 500);
+
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {
     //     //console.log(`Window innerWidth is ${window.innerWidth}`);
