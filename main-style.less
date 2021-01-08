@@ -69,6 +69,14 @@
     .visually-hidden();
 }
 
+:root {
+    --pixelswidth: 10;
+    --pixelsheight: 10;
+    --pixelsratio: calc(var(--pixelswidth) / var(--pixelsheight));
+    --pixelsview-atwidth-height: 80vh;
+    --pixelsview-atheight-width: 100vw;
+}
+
 .toolbar {
     /*background-color: hsl(0, 0%, 98%);*/
     border-radius: .5rem;
@@ -107,12 +115,6 @@
     align-items: flex-start;
     gap: 10px;
     align-items: stretch;
-
-    @media only screen and (max-width: 120ch) {
-        flex-flow: column nowrap;
-        // padding-left: 0px;
-        // padding-right: 0px;
-    }
 }
 
 .toolbar-content {
@@ -129,9 +131,19 @@
 .pixelart-panel {
     background-color: #ddd;
     flex: 1 1 100vw;
+    max-height: 80vh;
 
     &.resizable {
         flex: 0 0 auto;
+    }
+
+    border-radius: 0.0rem;
+    box-shadow: 0pt 0pt 0pt 1.5pt hsl(22, 100%, 60%);
+}
+
+.mobile-hide {
+    @media only screen and (max-width: 575px) {
+        display: none;
     }
 }
 
@@ -142,10 +154,6 @@
     flex-flow: column nowrap;
     padding: 8px;
     gap: 8px;
-
-    @media only screen and (max-width: 120ch) {
-        flex: 0 1 auto;
-    }
 }
 
 .colormapper-entry {
@@ -182,14 +190,6 @@
     flex-flow: column nowrap;
     justify-content: stretch;
     gap: 10px;
-
-    @media only screen and (max-width: 120ch) {
-        flex-flow: row nowrap;
-    }
-
-    @media only screen and (max-width: 60ch) {
-        flex-flow: column nowrap;
-    }
 
     &.resizable {
         flex: 0 0 auto;
@@ -244,8 +244,40 @@
         border-radius: 2px;
         background-color: #ddd;
     }
+}
 
-    @media only screen and (max-width: 120ch) {
+
+
+@media only screen and (max-width: 120ch) {
+    .panels-container {
+        flex-flow: column nowrap;
+    }
+
+    .pixelart-panel {
+        flex: 1 1 var(--pixelsview-atwidth-height);
+    }
+
+    .splitter {
         display: none;
+    }
+
+    .configuration-panel {
+        flex: 0 0 auto;
+    }
+}
+
+@media only screen and (max-width: 120ch) {
+    .colormapper {
+        flex: 0 1 auto;
+    }
+
+    .configuration-panel {
+        flex-flow: row nowrap;
+    }
+}
+
+@media only screen and (max-width: 60ch) {
+    .configuration-panel {
+        flex-flow: column nowrap;
     }
 }

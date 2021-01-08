@@ -29,7 +29,7 @@ let colorselector = null;
 
 let pixelart = pixelartText.replace(/\n+$/, "").split("\n");
 
-for(let i in pixelart) {
+for (let i in pixelart) {
     let list = [];
     for (let c of pixelart[i])
         list.push(c);
@@ -71,7 +71,7 @@ function onDOMReady() {
     colorselector.update();
 
     setupSplitter();
-    
+
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {
     //     //console.log(`Window innerWidth is ${window.innerWidth}`);
@@ -123,7 +123,7 @@ function setupSplitter() {
     let capturedPointer = null;
     let prevPos = null;
     let prevPanelWidth = null;
-    
+
     el.addEventListener("pointerdown", function (event) {
         el.setPointerCapture(event.pointerId);
         document.body.style.cursor = "col-resize";
