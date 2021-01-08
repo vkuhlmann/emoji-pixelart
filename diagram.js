@@ -68,13 +68,23 @@ class Diagram {
 
         this.addGlobalDiagramMouseEvent("click");
         this.addGlobalDiagramMouseEvent("pointerover");
+        // this.addGlobalDiagramMouseEvent("pointerenter");
+        // this.addGlobalDiagramMouseEvent("pointercancel");
+        // this.addGlobalDiagramMouseEvent("pointerout");
         this.addGlobalDiagramMouseEvent("pointerleave");
         this.addGlobalDiagramMouseEvent("pointerdown");
         this.addGlobalDiagramMouseEvent("pointerup");
         this.addGlobalDiagramMouseEvent("pointermove");
         this.addGlobalDiagramMouseEvent("wheel");
 
+        this.addGlobalDiagramMouseEvent("gotpointercapture");
+        this.addGlobalDiagramMouseEvent("lostpointercapture");
+
         this.setZoom(1.0);
+
+        this.pixels = [];
+        this.width = 0;
+        this.height = 0;
     }
 
     toSVGSpace(p, calcToSVGTransform = new DOMMatrix()) {
@@ -124,6 +134,23 @@ class Diagram {
         this.addMouseEventListener(eventName, f);
     };
 
+    addGlobalDiagramEvent(eventName, stopProp = true, prevDefault = true) {
+        let f = function (ev) {
+            if (!handleDiagramAvailable)
+                return;
+            if (prevDefault)
+                ev.preventDefault();
+            if (stopProp)
+                ev.stopPropagation();
+
+            if (handleDiagram[eventName] == null)
+                return;
+            return handleDiagram[eventName](ev);
+        };
+        this["handleGlobal" + eventName] = f;
+        this.el.addEventListener(eventName, f);
+    }
+
     setZoom(value = 1.0, origin = null) {
         if (origin == null)
             origin = { x: 0, y: 0 };
@@ -172,13 +199,15 @@ class Diagram {
         //     return false;
         if (!(x >= 0 && y >= 0 && y < pixelart.length && x < pixelart[y].length))
             return false;
+        if (pixelart[y][x] === id)
+            return true;
         pixelart[y][x] = id;
         this.redraw();
         updateEmojiOutput();
         return true;
     }
 
-    redraw() {
+    fullRedraw() {
         this.svgPixels.el.innerHTML = "";
         let lines = pixelart;
         let scale = 80;
@@ -202,6 +231,51 @@ class Diagram {
                 el.style.stroke = mapper.toColor[char];
                 this.svgPixels.el.appendChild(el);
             }
+        }
+    }
+
+    redraw() {
+        let scale = 80;
+        this.height = pixelart.length;
+        this.width = pixelart[0].length;
+
+        this.el.setAttribute("viewBox", `0 0 ${scale * this.width} ${scale * this.height}`);
+
+        for (let y = 0; y < this.height; y++) {
+            if (this.pixels.length <= y)
+                this.pixels.push([]);
+
+            for (let x = 0; x < this.width; x++) {
+                if (this.pixels[y].length === x) {
+                    let el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    this.svgPixels.el.appendChild(el);
+                    this.pixels[y].push(el);
+                }
+                let el = this.pixels[y][x];
+
+                let colorId = pixelart[y][x];
+
+                el.setAttribute("width", scale);
+                el.setAttribute("height", scale);
+                el.setAttribute("x", x * scale);
+                el.setAttribute("y", y * scale);
+                el.style.fill = mapper.toColor[colorId];
+                el.style.strokeWidth = "1px";
+                el.style.stroke = mapper.toColor[colorId];
+            }
+
+            while (this.pixels[y].length > this.width) {
+                this.pixels[y][this.width].remove();
+                this.pixels[y].splice(this.width, 1);
+            }
+        }
+
+        while (this.pixels.length > this.height) {
+            while (this.pixels[this.height].length > this.width) {
+                this.pixels[this.height][this.width].remove();
+                this.pixels[this.height].splice(this.width, 1);
+            }
+            this.pixels.splice(this.height, 1);
         }
     }
 }
@@ -250,30 +324,68 @@ function paintOnDiagramClick() {
         //     setDiagramHandle({});
     };
 
+    function isPointerCaptured(ev) {
+        return capturedPointer === true || capturedPointer === ev.pointerId;
+    }
+    function releasePointerCapture(ev) {
+        if (capturedPointer === ev.pointerId) {
+            if (diagram.el.hasPointerCapture(capturedPointer)) {
+                console.log(`Releasing ${capturedPointer}`);
+                try {
+                    diagram.el.releasePointerCapture(capturedPointer);
+                } catch (e) {
+                    console.log(`Error releasing capture: ${e.message}`);
+                }
+            } else {
+                console.log(`Vacuously releasing ${capturedPointer}`);
+            }
+            capturedPointer = null;
+        } else if (capturedPointer === true) {
+            capturedPointer = null;
+        }
+    }
+
     setDiagramHandle({
         click: paintPixel,
-        pointerdown: function(event, pos) {
+        pointerdown: function (event, pos) {
+            capturedPointer = true;
             diagram.el.setPointerCapture(event.pointerId);
-            capturedPointer = event.pointerId;
             paintPixel(event, pos);
-            event.preventDefault();
+            //event.preventDefault();
+        },
+        pointercancel: function (event, pos) {
+            if (!isPointerCaptured(event))
+                return;
+            capturedPointer = null;
+            //releasePointerCapture(event);
+            //event.preventDefault();
         },
         pointerup: function (event, pos) {
-            if (capturedPointer === event.pointerId) {
-                event.target.releasePointerCapture(capturedPointer);
-                capturedPointer = null;
-            }
-            event.preventDefault();
+            if (!isPointerCaptured(event))
+                return;
+            capturedPointer = null;
+            //releasePointerCapture(event);
+            //event.preventDefault();
         },
         pointermove: function (event, pos) {
-            if (event.pointerId !== capturedPointer)
+            if (!isPointerCaptured(event))
                 return;
             paintPixel(event, pos);
-            event.preventDefault();
+            //event.preventDefault();
+        },
+        gotpointercapture: function (event, pos) {
+            capturedPointer = event.pointerId;
+            //console.log(`Acquired ${event.pointerId}`);
+        },
+        lostpointercapture: function (event, pos) {
+            if (capturedPointer === event.pointerId)
+                capturedPointer = null;
+            //console.log(`Lost ${event.pointerId}`);
         },
         dismiss: function () {
+            releasePointerCapture();
             //that.untoggle();
-        }
+        },
     });
 }
 
