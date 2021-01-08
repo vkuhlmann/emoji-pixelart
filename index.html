@@ -74,7 +74,7 @@
                     </li>
                 </ul>
             </div>
-            <a class="navbar-brand" href="/">Emoji pixelart</a>
+            <a class="navbar-brand mobile-hide" href="/">Emoji pixelart</a>
             <!--</div>-->
         </div>
     </nav>
@@ -82,7 +82,7 @@
     <div class="container-fluid">
         <div class="panels-container" id="panelsContainer">
             <div id="pixelartPanel" class="pixelart-panel">
-                <svg style="width:100%;height:85vh;" id="pixelartSvg">
+                <svg style="width:100%;height:100%;" id="pixelartSvg">
                     <!--<rect id="svgBackground" style="width:100%;height:100%;fill:#ddd;" />-->
                     <svg width="100%" height="100%" preserveAspectRatio="xMinYMid meet" id="drawingContainerSvg"
                         style="touch-action:none;" class="pannable-diagram">
@@ -103,8 +103,8 @@
             </div>
             <div id="configurationPanel" class="configuration-panel">
                 <div id="emojiOutput" style="flex:1 0 auto;display:flex;flex-flow:column nowrap;">
-                    <textarea class="form-control" id="outputArea" rows="12"
-                        style="flex:1 0 auto;display:block;" readonly="readonly"></textarea>
+                    <textarea class="form-control" id="outputArea" rows="12" style="flex:1 0 auto;display:block;"
+                        readonly="readonly"></textarea>
                     <button type="button" class="button-action" style="flex:0 0 auto;"
                         id="copyOutputButton">Copy</button>
                 </div>

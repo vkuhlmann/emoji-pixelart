@@ -85,6 +85,11 @@ class Diagram {
         this.pixels = [];
         this.width = 0;
         this.height = 0;
+
+        const that = this;
+        window.addEventListener("resize", e => {
+            that.updateViewSize();
+        });
     }
 
     toSVGSpace(p, calcToSVGTransform = new DOMMatrix()) {
@@ -210,10 +215,9 @@ class Diagram {
     fullRedraw() {
         this.svgPixels.el.innerHTML = "";
         let lines = pixelart;
-        let scale = 80;
+        let scale = this.tileSize;
 
-        this.el.setAttribute("viewBox", `0 0 ${scale * lines[0].length} ${scale * lines.length}`);
-
+        this.pixels = [];
         let y = -1;
         let x;
         for (let line of lines) {
@@ -232,14 +236,14 @@ class Diagram {
                 this.svgPixels.el.appendChild(el);
             }
         }
+
+        this.updateViewSize();
     }
 
     redraw() {
-        let scale = 80;
+        let scale = this.tileSize;
         this.height = pixelart.length;
         this.width = pixelart[0].length;
-
-        this.el.setAttribute("viewBox", `0 0 ${scale * this.width} ${scale * this.height}`);
 
         for (let y = 0; y < this.height; y++) {
             if (this.pixels.length <= y)
@@ -277,6 +281,36 @@ class Diagram {
             }
             this.pixels.splice(this.height, 1);
         }
+
+        this.updateViewSize();
+        // root.style.setProperty("--pixelsviewheight", this.height);
+        // --pixelsviewheightforwidth: 80vh;
+        // --pixelsviewwidthforheight: 100vw;
+    }
+
+    updateViewSize() {
+        if (this.isUpdatingViewSize)
+            return;
+        this.isUpdatingViewSize = true;
+        this.el.setAttribute("viewBox", `0 0 ${this.tileSize * this.width} ${this.tileSize * this.height}`);
+
+        // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
+        let root = document.documentElement;
+        root.style.setProperty("--pixelswidth", this.width);
+        root.style.setProperty("--pixelsheight", this.height);
+
+        let aspectRatio = this.width / this.height;
+        let rectPanel = $("#pixelartPanel")[0].getBoundingClientRect();
+        let rectSvg = $("#pixelartSvg")[0].getBoundingClientRect();
+        root.style.setProperty("--pixelsview-atwidth-height", `${rectSvg.width / aspectRatio + rectPanel.width - rectSvg.width}px`);
+        root.style.setProperty("--pixelsview-atheight-width", `${rectSvg.height * aspectRatio + rectPanel.height - rectSvg.height}px`);
+
+        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientWidth / aspectRatio}`);
+        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientHeight * aspectRatio} ${$("#pixelartSvg")[0].clientHeight}`);
+        $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
+
+        this.isUpdatingViewSize = false;
+        delete this.isUpdatingViewSize;
     }
 }
 
