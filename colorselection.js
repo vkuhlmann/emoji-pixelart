@@ -48,7 +48,7 @@ class ColorSelector {
 
         const that = this;
         this.newColorChooser.setColor = color => {
-            that.newColorChooser.el.style.backgroundColor = color.toRGBA();
+            that.newColorChooser.el.style.backgroundColor = color;
         };
 
         this.selected = [];
@@ -78,7 +78,7 @@ class ColorSelector {
             theme: 'classic', // or 'monolith', or 'nano'
             //container: panel.el,
             comparison: false,
-            default: "#000",
+            default: "rgb(181,186,253)",
             useAsButton: true,
 
             components: {
@@ -102,17 +102,18 @@ class ColorSelector {
         });
 
         this.newColorChooser.pickr.on("change", (color, source, instance) => {
-            this.newColorChooser.setColor(color);
+            this.newColorChooser.setColor(color.toRGBA().toString(2));
         });
 
         this.newColorChooser.pickr.on("hide", instance => {
-            //console.log(this.newColorChooser.pickr.getColor().toRGBA().toString(2));
-            mapper.registerNew({color: this.newColorChooser.pickr.getColor().toRGBA().toString(2)});
+            let id = mapper.registerNew({color: this.newColorChooser.pickr.getColor().toRGBA().toString(2)});
+            this.selectSingle(id);
             this.newColorChooserContainer.el.classList.add("hide");
         })
     }
 
     onAddColor() {
+        this.newColorChooser.setColor(this.newColorChooser.pickr.getColor().toRGBA().toString(2));
         this.newColorChooserContainer.el.classList.remove("hide");
         this.newColorChooser.pickr.show();
     }
@@ -149,7 +150,7 @@ class ColorSelector {
     update() {
         let prevSelected = [...this.selected];
         this.clear();
-        for (let id in mapper.toColor) {
+        for (let id of mapper.orderedIds) {
             this.add(id, mapper.toColor[id]);
         }
 

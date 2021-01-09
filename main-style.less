@@ -199,6 +199,7 @@
 
 .coloroption {
     padding: 0.4rem;
+    border-radius: 0.25rem;
 
     .colordisplay {
         display: block;
@@ -228,8 +229,11 @@
     &.coloroption-selected {
         background-color: #fff;
         //border: 3px solid black;
-        border-radius: 0.25rem;
-        box-shadow: 0pt 0pt 0pt 1.5pt hsl(22, 100%, 60%);
+        box-shadow: 0pt 0pt 0pt 2pt hsl(22, 100%, 60%) inset;
+    }
+
+    &.coloroption-new-choose {
+        box-shadow: 0pt 0pt 0pt 3pt hsl(0, 100%, 60%) inset;
     }
 }
 

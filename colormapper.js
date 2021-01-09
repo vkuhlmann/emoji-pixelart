@@ -65,6 +65,7 @@ class Mapper {
         this.onUpdate = onUpdate;
         this.toColor = {};
         this.toEmoji = {};
+        this.orderedIds = [];
         this.nextId = 0;
 
         this.items = [];
@@ -87,16 +88,24 @@ class Mapper {
         let newId = this.getNextId();
         this.toColor[newId] = desc.color;
         this.toEmoji[newId] = desc.emoji ?? emojimapping["x"];
+        this.orderedIds.push(newId);
         this.update();
         colorselector.update();
         return newId;
     }
 
     update() {
+        for (let id in this.toColor) {
+            if (parseInt(id) == id)
+                id = parseInt(id);
+            if (!this.orderedIds.includes(id))
+                this.orderedIds.push(id);
+        }
+
         //this.toColors = colormap;
         this.clear();
         let i = 0;
-        for (let id in this.toColor) {
+        for (let id of this.orderedIds) {
             this.add({ color: this.toColor[id], value: `${id}`, "id": id, "emoji": this.toEmoji[id] });
             i += 1;
         }
