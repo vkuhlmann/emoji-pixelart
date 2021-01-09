@@ -66,6 +66,46 @@
                     </li>
 
                     <li class="nav-item colorselector" id="colorSelector">
+                        <div data-id="dynamicOptions" class="coloroptions">
+
+                        </div>
+                        <div class="coloroption coloroption-new-choose hide" id="newColorChooserContainer">
+                            <!--<input type="color" data-binding="color" id="newColorChooser" value="#ff0000">-->
+                            <button type="button" role="button" class="colordisplay" id="newColorChooser"></button>
+                        </div>
+                        <div class="coloroption coloroption-new">
+                            <button type="button" role="button" class="colordisplay" id="addColorButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="100%" viewBox="0 0 16 16">
+                                    <!-- <style>
+                                        :root {
+                                            --stripes-partial-height: 1.0;
+                                            --stripes-abs-height: calc(var(--stripes-partial-height) * 3.5355);
+                                        }
+                                    </style> -->
+                                    <defs>
+                                        <pattern id="stripes" viewBox="0,0,10,10" width="70%" height="70%">
+                                            <!--<polygon points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2"/>-->
+                                            <!--<polygon points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2"/>-->
+                                            <!--
+                                            import math
+                                            partialHeight = 1.0
+                                            absHeight = partialHeight * 5 / math.sqrt(2)
+                                            
+                                            width = 15 [\simeq \sqrt{2}] + height = 20, x = 5 - width/2 = -5 -->
+                                            <rect x="-5" y="2.5" width="20" height="3.536" transform="rotate(45 5 5)"
+                                                fill="#eee" />
+                                            <rect x="-5" y="2.5" width="20" height="3.536"
+                                                transform="translate(-10 0)rotate(45 5 5)" fill="#eee" />
+                                            <rect x="-5" y="2.5" width="20" height="3.536"
+                                                transform="translate(10 0)rotate(45 5 5)" fill="#eee" />
+                                        </pattern>
+                                    </defs>
+                                    <rect x="0" y="0" width="16" height="16" fill="url(#stripes)" />
+                                    <path d="M 4 8 H 12 M 8 4 V 12"
+                                        style="stroke:currentColor;stroke-width:1.5;stroke-linecap:round;" />
+                                </svg>
+                            </button>
+                        </div>
                         <!--<button type="button" class="button-toggle" id="importImage"
                             style="display:flex;flex-flow:row nowrap;align-items:center;">
                             <span style="margin-left:5px;">Import image</span>

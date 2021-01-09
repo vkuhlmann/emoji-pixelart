@@ -44,6 +44,7 @@ class ColorMapperEntry {
         updateBinding(this, "color");
         this.parent.toColor[this.paletteColorID] = this.color.value;
         updateSVGDisplay();
+        colorselector.update();
 
         delete this.color.suppressSet;
     };
@@ -64,6 +65,8 @@ class Mapper {
         this.onUpdate = onUpdate;
         this.toColor = {};
         this.toEmoji = {};
+        this.orderedIds = [];
+        this.nextId = 0;
 
         this.items = [];
 
@@ -72,16 +75,37 @@ class Mapper {
         this.add({ color: "green", value: "BB" });
     }
 
+    getNextId() {
+        return this.nextId++;
+    }
+
     clear() {
         this.items = [];
         this.el.innerHTML = "";
     }
 
+    registerNew(desc) {
+        let newId = this.getNextId();
+        this.toColor[newId] = desc.color;
+        this.toEmoji[newId] = desc.emoji ?? emojimapping["x"];
+        this.orderedIds.push(newId);
+        this.update();
+        colorselector.update();
+        return newId;
+    }
+
     update() {
+        for (let id in this.toColor) {
+            if (parseInt(id) == id)
+                id = parseInt(id);
+            if (!this.orderedIds.includes(id))
+                this.orderedIds.push(id);
+        }
+
         //this.toColors = colormap;
         this.clear();
         let i = 0;
-        for (let id in this.toColor) {
+        for (let id of this.orderedIds) {
             this.add({ color: this.toColor[id], value: `${id}`, "id": id, "emoji": this.toEmoji[id] });
             i += 1;
         }
@@ -98,6 +122,8 @@ class Mapper {
     }
 
     add(desc) {
+        if (!isNaN(desc.id))
+            this.nextId = Math.max(this.nextId, desc.id + 1);
         let entry = ColorMapperEntry.Create(this, desc);
         this.items.push(entry);
         this.el.appendChild(entry.el);

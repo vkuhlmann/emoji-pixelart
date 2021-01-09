@@ -199,6 +199,7 @@
 
 .coloroption {
     padding: 0.4rem;
+    border-radius: 0.25rem;
 
     .colordisplay {
         display: block;
@@ -210,18 +211,41 @@
         outline: none;
         border: none;
         text-transform: none;
+        overflow: hidden;
+    }
 
+    &.coloroption-new {
+        .colordisplay {
+            background-color: #fff;
+            display: flex;
+            flex-flow: column nowrap;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            padding: 0.0rem;
+        }
     }
 
     &.coloroption-selected {
         background-color: #fff;
         //border: 3px solid black;
-        border-radius: 0.25rem;
-        box-shadow: 0pt 0pt 0pt 1.5pt hsl(22, 100%, 60%);
+        box-shadow: 0pt 0pt 0pt 2pt hsl(22, 100%, 60%) inset;
+    }
+
+    &.coloroption-new-choose {
+        box-shadow: 0pt 0pt 0pt 3pt hsl(0, 100%, 60%) inset;
     }
 }
 
 .colorselector {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    align-content: center;
+    gap: 0.1rem;
+}
+
+.coloroptions {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
