@@ -44,6 +44,7 @@ class ColorMapperEntry {
         updateBinding(this, "color");
         this.parent.toColor[this.paletteColorID] = this.color.value;
         updateSVGDisplay();
+        colorselector.update();
 
         delete this.color.suppressSet;
     };
@@ -64,6 +65,7 @@ class Mapper {
         this.onUpdate = onUpdate;
         this.toColor = {};
         this.toEmoji = {};
+        this.nextId = 0;
 
         this.items = [];
 
@@ -72,9 +74,22 @@ class Mapper {
         this.add({ color: "green", value: "BB" });
     }
 
+    getNextId() {
+        return this.nextId++;
+    }
+
     clear() {
         this.items = [];
         this.el.innerHTML = "";
+    }
+
+    registerNew(desc) {
+        let newId = this.getNextId();
+        this.toColor[newId] = desc.color;
+        this.toEmoji[newId] = desc.emoji ?? emojimapping["x"];
+        this.update();
+        colorselector.update();
+        return newId;
     }
 
     update() {
@@ -98,6 +113,8 @@ class Mapper {
     }
 
     add(desc) {
+        if (!isNaN(desc.id))
+            this.nextId = Math.max(this.nextId, desc.id + 1);
         let entry = ColorMapperEntry.Create(this, desc);
         this.items.push(entry);
         this.el.appendChild(entry.el);
