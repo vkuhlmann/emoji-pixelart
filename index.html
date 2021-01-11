@@ -22,6 +22,10 @@
     <!-- <script src="lib/bmp-js/decoder.js"></script>
     <script src="lib/bmp-js/encoder.js"></script> -->
     <!-- <script src="lib/fast-png/PNGDecoder.ts"></script> -->
+    <!-- <script src="lib/pako/pako.min.js"></script>
+    <script src="lib/pako/pako_deflate.min.js"></script>
+    <script src="lib/pako/pako_inflate.min.js"></script> -->
+    <script src="lib/UZIP.js/UZIP.js"></script>
     <script src="lib/UPNG/UPNG.js"></script>
     <script src="utils.js"></script>
     <script src="colormapper.js"></script>
@@ -61,10 +65,17 @@
                     <li class="nav-item">
                         <button type="button" class="button-toggle" id="importImage"
                             style="display:flex;flex-flow:row nowrap;align-items:center;">
-                            <span style="margin-left:5px;">Import image</span>
+                            <span style="margin-left:5px;">Load</span>
                         </button>
                     </li>
-
+                    <li class="nav-item">
+                        <button type="button" class="button-toggle" id="saveImage"
+                            style="display:flex;flex-flow:row nowrap;align-items:center;">
+                            <span style="margin-left:5px;">Save</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" style="display:block;width:2px;height:25px;background-color:#ccc;border-radius:1px;margin-left:10px;margin-right:10px;">
+                    </li>
                     <li class="nav-item colorselector" id="colorSelector">
                         <div data-id="dynamicOptions" class="coloroptions">
 

@@ -22,7 +22,7 @@ class ColorMapperEntry {
     constructor(el, parent, desc) {
         this.el = el;
         this.parent = parent;
-        this.color = { value: desc.color || "red" };
+        this.color = { value: desc.color || "rgb(255, 0, 0)" };
         this.emoji = desc["emoji"] ?? "x";
         this.paletteColorID = desc["id"];
 
