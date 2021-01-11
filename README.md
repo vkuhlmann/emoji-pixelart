@@ -1,4 +1,4 @@
-# Emoji pixelart
+# Emoji pixelart: Pixelart to send to your friends!
 
 Create or load pixelart and convert it into an emoji raster!
 
