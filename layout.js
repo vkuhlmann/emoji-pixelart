@@ -72,7 +72,7 @@ function onDOMReady() {
 
     setupSplitter();
 
-    window.setTimeout(function() {diagram.updateViewSize();}, 500);
+    window.setTimeout(function () { diagram.updateViewSize(); }, 500);
 
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {
@@ -113,6 +113,10 @@ function onDOMReady() {
     //         console.log(`Hit tile (${x}, ${y})`);
     //     }
     // );
+
+    $("#saveImage").on("click", e => {
+        saveImage();
+    });
 }
 
 // function resetSplitterWidth() {
@@ -213,6 +217,8 @@ function interpretImage(data, width, height) {
     //mapper.setToColorMapping(colormap);
     mapper.update();
     colorselector.update();
+
+
 }
 
 
@@ -228,6 +234,77 @@ function importFromFile(file) {
         console.log(img);
         interpretImage(rawPixels, width, height);
     });
+}
+
+// const parseRGBARegex = new RegExp(
+//     "^.*?(?<red>\\d+(\\.\\d+)?)(?<redPercentage>[^\\d,]+.*?%)?.*?" + 
+//     "(?<green>\\d+(\\.\\d+)?)(?<greenPercentage>[^\\d,]+.*?%)?.*?" + 
+//     "(?<blue>\\d+(\\.\\d+)?)(?<bluePercentage>[^\\d,]+.*?%)?.*?" + 
+//     "((?<alpha>\\d+(\\.\\d+)?)(?<alphaPercentage>[^\\d,]+.*?%)?.*)?$");
+
+const parseRGBARegex = new RegExp(
+    "^.*?\\(\\s*(?<red>\\d+(\\.\\d+)?)\\s*(?<redPercentage>%)?\\s*,\\s*" +
+    "(?<green>\\d+(\\.\\d+)?)\\s*(?<greenPercentage>%)?\\s*,\\s*" +
+    "(?<blue>\\d+(\\.\\d+)?)\\s*(?<bluePercentage>%)?\\s*" +
+    "(,\\s*(?<alpha>\\d+(\\.\\d+)?)\\s*(?<alphaPercentage>%)?\\s*)?\\)\\s*$");
+
+
+function parseRGBAValues(string) {
+    let match = string.match(parseRGBARegex);
+    let arr = [+match.groups["red"], +match.groups["green"], +match.groups["blue"],
+    +(match.groups["alpha"] ?? 1)];
+
+    if (match.groups["redPercentage"] != null)
+        arr[0] = Math.round(arr[0] * 255.0 / 100.0);
+    if (match.groups["greenPercentage"] != null)
+        arr[1] = Math.round(arr[1] * 255.0 / 100.0);
+    if (match.groups["bluePercentage"] != null)
+        arr[2] = Math.round(arr[2] * 255.0 / 100.0);
+    if (match.groups["alphaPercentage"] != null)
+        arr[3] = Math.round(arr[3] * 255.0 / 100.0);
+    else
+        arr[3] = Math.round(arr[3] * 255.0);
+    return arr;
+}
+
+function saveToBuffer() {
+    let arrayBuffer = new ArrayBuffer(diagram.width * diagram.height * 4);
+    //let array = new Uint8Array(diagram.width * diagram.height * 4);
+    let array = new Uint8Array(arrayBuffer);
+    let colorsToBytes = {};
+    for (let id of mapper.orderedIds) {
+        let color = mapper.toColor[id];
+        // let match = color.match(regex);
+        // colorsToBytes[id] = [+match.groups["red"], +match.groups["green"], +match.groups["blue"],
+        // +(match.groups["alpha"] ?? 1) * 100];
+        colorsToBytes[id] = parseRGBAValues(color);
+    }
+    //console.log(JSON.stringify(colorsToBytes));
+    for (let y = 0; y < diagram.height; y++) {
+        for (let x = 0; x < diagram.width; x++) {
+            array.set(colorsToBytes[pixelart[y][x]], (y * diagram.width + x) * 4);
+        }
+    }
+    let buffer = UPNG.encode([arrayBuffer], diagram.width, diagram.height, 0);
+    //let buffer = result.buffer.slice(result.byteOffset, result.byteOffset + result.byteLength);
+    return buffer;
+}
+
+function saveImage(fileName = "pixelart.png") {
+    let buffer = saveToBuffer();
+
+    // Source: https://stackoverflow.com/questions/19327749/javascript-blob-filename-without-link
+    // Modified
+    let a = document.createElement("a");
+    a.style.display = "none";
+    document.body.appendChild(a);
+
+    let blob = new Blob([buffer], { type: "image/png" });
+    let url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
 
 function setupOverlay() {
