@@ -43,6 +43,8 @@ let emojimapping = {
 
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
 
+let panButton;
+
 function onDOMReady() {
     mapper = new Mapper($("#mapper")[0]);
     //mapper.setToColorMapping(colormap);
@@ -65,7 +67,7 @@ function onDOMReady() {
     setupOverlay();
 
     //printCoordOnDiagramClick();
-    paintOnDiagramClick();
+    //paintOnDiagramClick();
 
     colorselector = new ColorSelector();
     colorselector.update();
@@ -73,6 +75,8 @@ function onDOMReady() {
     setupSplitter();
 
     window.setTimeout(function () { diagram.updateViewSize(); }, 500);
+
+    panButton = new PanButton();
 
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {
@@ -217,8 +221,62 @@ function interpretImage(data, width, height) {
     //mapper.setToColorMapping(colormap);
     mapper.update();
     colorselector.update();
+}
+
+function increaseWidth(width, fillColorId = null) {
+    let newPixelArt = [];
+    if (fillColorId == null)
+        fillColorId = mapper.orderedIds[0] ?? Object.keys(mapper.toColor)[0];
+
+    for (let row of pixelart) {
+        newPixelArt.push([...Array.from(row), ...(new Array(width - diagram.width).fill(fillColorId))]);
+    }
+    pixelart = newPixelArt;
+    updateSVGDisplay();
+    updateEmojiOutput();
+}
+
+function decreaseWidth(width) {
+    let newPixelArt = [];
+    for (let row of pixelart) {
+        newPixelArt.push(row.slice(0, width));
+    }
+    pixelart = newPixelArt;
+    updateSVGDisplay();
+    updateEmojiOutput();
+}
+
+function increaseHeight(height, fillColorId = null) {
+    if (fillColorId == null)
+        fillColorId = mapper.orderedIds[0] ?? Object.keys(mapper.toColor)[0];
+
+    for (let currHeight = diagram.height; currHeight < height; currHeight++) {
+        pixelart.push(new Array(diagram.width).fill(fillColorId));
+    }
+
+    updateSVGDisplay();
+    updateEmojiOutput();
+}
+
+function decreaseHeight(height) {
+    pixelart.splice(height);
+    updateSVGDisplay();
+    updateEmojiOutput();
+}
 
 
+function setWidth(width, fillColorId = null) {
+    if (width < diagram.width)
+        decreaseWidth(width);
+    else if (width > diagram.width)
+        increaseWidth(width, fillColorId);
+}
+
+function setHeight(height, fillColorId = null) {
+    if (height < diagram.height)
+        decreaseHeight(height);
+    else if (height > diagram.height)
+        increaseHeight(height, fillColorId);
 }
 
 
