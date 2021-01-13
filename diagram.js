@@ -1,6 +1,5 @@
 "use strict";
 
-let isPanModus;
 let handleDiagram = {
     pointerover: null,
     pointerleave: null,
@@ -11,8 +10,6 @@ let handleDiagram = {
     dismiss: null
 }
 let handleDiagramAvailable = false;
-
-let markingID = 0;
 
 let addPointButton;
 let diagram;
@@ -86,10 +83,18 @@ class Diagram {
         this.width = 0;
         this.height = 0;
 
+        this.minWidthInView = this.tileSize;
+        this.minHeightInView = this.tileSize;
+
         const that = this;
         window.addEventListener("resize", e => {
-            that.updateViewSize();
+            that.onResize();
         });
+    }
+
+    onResize() {
+        this.updateViewSize();
+        this.setPanOffset(this.panOffset.x, this.panOffset.y);
     }
 
     toSVGSpace(p, calcToSVGTransform = new DOMMatrix()) {
@@ -108,7 +113,7 @@ class Diagram {
         let b = new DOMPoint(rect.x + rect.width, rect.y + rect.height);
         let transf = new DOMMatrix();//diagramView.svgElem.el.getCTM().invertSelf();
         //transf = transf.preMultiplySelf(new DOMMatrix().scaleSelf(diagramView.zoom, diagramView.zoom));
-        transf = transf.preMultiplySelf(this.el.getScreenCTM()).invertSelf();
+        transf = transf.preMultiplySelf(this.svgContent.el.getScreenCTM()).invertSelf();
         a = a.matrixTransform(transf);
         b = b.matrixTransform(transf);
 
@@ -189,7 +194,20 @@ class Diagram {
     }
 
     setPanOffset(x, y) {
-        this.diagramView.panOffset = { x: x, y: y };
+        let viewBounds = this.getCurrentViewBounds();
+        if (this.minWidthInView > -0.5) {
+            //x = Math.min(x, (this.width - 1) * this.tileSize);
+            x = Math.min(x, -(viewBounds.left + this.minWidthInView - this.width * this.tileSize));
+            x = Math.max(x, -(viewBounds.right - this.minWidthInView));
+        }
+
+        if (this.minHeightInView > -0.5) {
+            //y = Math.min(y, (this.height - 1) * this.tileSize);
+            y = Math.min(y, -(viewBounds.top + this.minHeightInView - this.height * this.tileSize));
+            y = Math.max(y, -(viewBounds.bottom - this.minHeightInView));
+        }
+
+        this.panOffset = { x: x, y: y };
         this.updatePositioning();
     }
 
@@ -315,8 +333,12 @@ class Diagram {
 }
 
 function setDiagramHandle(handlers) {
-    if (handleDiagramAvailable && handleDiagram["dismiss"] != null)
-        handleDiagram["dismiss"]();
+    if (handleDiagramAvailable && handleDiagram["dismiss"] != null) {
+        let dismissHandler = handleDiagram["dismiss"];
+        handleDiagram = {};
+        handleDiagramAvailable = false;
+        dismissHandler();
+    }
 
     handleDiagram = handlers;
     handleDiagramAvailable = handlers != null && Object.keys(handlers).length > 0;
@@ -339,91 +361,7 @@ function printCoordOnDiagramClick() {
     });
 }
 
-function paintOnDiagramClick() {
-    let capturedPointer = null;
-    let paintPixel = function (event, pos) {
-        let x = Math.floor(pos.x / diagram.tileSize);
-        let y = Math.floor(pos.y / diagram.tileSize);
-
-        let selected = colorselector.getSingleSelected();
-        if (selected != null)
-            diagram.setPixel(x, y, selected);
-
-        // x = pos.x / diagram.tileSize;
-        // y = pos.y / diagram.tileSize;
-
-        // console.log(`Clicked at tile (${x}, ${y})`);
-        //console.log(`Clicked at tile (${x}, ${y})`);
-        // if (addPointButton.getState() == 1)
-        //     setDiagramHandle({});
-    };
-
-    function isPointerCaptured(ev) {
-        return capturedPointer === true || capturedPointer === ev.pointerId;
-    }
-    function releasePointerCapture(ev) {
-        if (capturedPointer === ev.pointerId) {
-            if (diagram.el.hasPointerCapture(capturedPointer)) {
-                console.log(`Releasing ${capturedPointer}`);
-                try {
-                    diagram.el.releasePointerCapture(capturedPointer);
-                } catch (e) {
-                    console.log(`Error releasing capture: ${e.message}`);
-                }
-            } else {
-                console.log(`Vacuously releasing ${capturedPointer}`);
-            }
-            capturedPointer = null;
-        } else if (capturedPointer === true) {
-            capturedPointer = null;
-        }
-    }
-
-    setDiagramHandle({
-        click: paintPixel,
-        pointerdown: function (event, pos) {
-            capturedPointer = true;
-            diagram.el.setPointerCapture(event.pointerId);
-            paintPixel(event, pos);
-            //event.preventDefault();
-        },
-        pointercancel: function (event, pos) {
-            if (!isPointerCaptured(event))
-                return;
-            capturedPointer = null;
-            //releasePointerCapture(event);
-            //event.preventDefault();
-        },
-        pointerup: function (event, pos) {
-            if (!isPointerCaptured(event))
-                return;
-            capturedPointer = null;
-            //releasePointerCapture(event);
-            //event.preventDefault();
-        },
-        pointermove: function (event, pos) {
-            if (!isPointerCaptured(event))
-                return;
-            paintPixel(event, pos);
-            //event.preventDefault();
-        },
-        gotpointercapture: function (event, pos) {
-            capturedPointer = event.pointerId;
-            //console.log(`Acquired ${event.pointerId}`);
-        },
-        lostpointercapture: function (event, pos) {
-            if (capturedPointer === event.pointerId)
-                capturedPointer = null;
-            //console.log(`Lost ${event.pointerId}`);
-        },
-        dismiss: function () {
-            releasePointerCapture();
-            //that.untoggle();
-        },
-    });
-}
-
-class TwoStageToggleButton {
+class ToggleButton {
     constructor(el) {
         this.el = el;
         this.state = 0;
@@ -436,6 +374,54 @@ class TwoStageToggleButton {
         return this.state;
     }
 
+    isToggled() {
+        return this.state > 0;
+    }
+
+    toggle() {
+        if (this.isToggled())
+            return;
+        this.el.classList.add("toggled");
+        this.state = 1;
+
+        this.onToggle();
+    }
+
+    onToggle() {
+        // Override this
+    }
+
+    untoggle() {
+        if (this.state == 0)
+            return;
+        this.state = 0;
+        this.el.classList.remove("toggled");
+
+        this.onUntoggle();
+    }
+
+    onUntoggle() {
+        // Override this
+    }
+
+    cycleToggle() {
+        if (this.state == 1) {
+            this.untoggle();
+        } else {
+            this.toggle();
+        }
+    }
+}
+
+class TwoStageToggleButton extends ToggleButton {
+    constructor(el) {
+        super(el);
+    }
+
+    isSecondToggled() {
+        return this.state >= 2;
+    }
+
     untoggle() {
         if (this.state == 0)
             return;
@@ -444,10 +430,6 @@ class TwoStageToggleButton {
         this.el.classList.remove("second-stage");
 
         this.onUntoggle();
-    }
-
-    onUntoggle() {
-        // Override this
     }
 
     toggleFirst() {
@@ -459,6 +441,10 @@ class TwoStageToggleButton {
         this.el.classList.add("toggled");
         this.state = 1;
 
+        this.onToggleFirst();
+    }
+
+    onToggle() {
         this.onToggleFirst();
     }
 
@@ -523,5 +509,113 @@ class AddPointButton extends TwoStageToggleButton {
 
     onToggleSecond() {
 
+    }
+}
+
+class PanButton extends ToggleButton {
+    constructor() {
+        super($("#panButton")[0]);
+    }
+
+    onToggle() {
+        let panEl = $("#pixelartSvg")[0];
+        let panContext = diagram;
+
+        panEl.style.cursor = "all-scroll";
+
+        $(".coloroption-pan")[0].classList.add("coloroption-selected");
+
+        //$("#pixelartSvg").css("cursor", "all-scroll");
+
+        let transfMatrix = null;
+        let originalOffset;
+        let grapPoint;
+        const that = this;
+        let capturedPointer = null;
+
+        let isPointerCaptured = (ev) => {
+            return capturedPointer === true || capturedPointer === ev.pointerId;
+        }
+        let releasePointerCapture = (ev) => {
+            if (ev == null || capturedPointer === ev.pointerId) {
+                if (diagram.el.hasPointerCapture(capturedPointer)) {
+                    //console.log(`Releasing ${capturedPointer}`);
+                    try {
+                        diagram.el.releasePointerCapture(capturedPointer);
+                    } catch (e) {
+                        //console.log(`Error releasing capture: ${e.message}`);
+                    }
+                } else {
+                    //console.log(`Vacuously releasing ${capturedPointer}`);
+                }
+                capturedPointer = null;
+            } else if (capturedPointer === true) {
+                capturedPointer = null;
+            }
+        }
+
+        setDiagramHandle({
+            pointerdown: function (event, pos) {
+                capturedPointer = true;
+                panEl.setPointerCapture(event.pointerID);
+                originalOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
+                grapPoint = DOMPoint.fromPoint(pos);
+                transfMatrix = new DOMMatrix().translateSelf(-grapPoint.x, -grapPoint.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
+            },
+            pointercancel: function (event, pos) {
+                if (!isPointerCaptured(event))
+                    return;
+                capturedPointer = null;
+            },
+            pointerup: function (event, pos) {
+                if (!isPointerCaptured(event))
+                    return;
+                transfMatrix = null;
+            },
+            pointermove: function (event, pos) {
+                if (!isPointerCaptured(event))
+                    return;
+
+                if (transfMatrix !== null) {
+                    let point = DOMPoint.fromPoint(pos);
+                    point = point.matrixTransform(transfMatrix)
+                        .matrixTransform(new DOMMatrix().scaleSelf(panContext.zoom, panContext.zoom))
+                        .matrixTransform(new DOMMatrix().translateSelf(panContext.panOffset.x, panContext.panOffset.y));
+                    transfMatrix = new DOMMatrix().translateSelf(-pos.x, -pos.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
+
+                    panContext.setPanOffset(point.x, point.y);
+                }
+            },
+            gotpointercapture: function (event, pos) {
+                capturedPointer = event.pointerId;
+                //console.log(`Acquired ${event.pointerId}`);
+            },
+            lostpointercapture: function (event, pos) {
+                if (capturedPointer === event.pointerId)
+                    capturedPointer = null;
+                //console.log(`Lost ${event.pointerId}`);
+            },
+            // wheel: function (event, pos) {
+            //     let scrollAmount = event.deltaY;
+            //     if (event.deltaMode == 1) {
+            //         scrollAmount = -0.1 * scrollAmount / 10;
+            //     } else {
+            //         scrollAmount = scrollAmount / 1000;
+            //     }
+            //     panContext.zoomIncrease(scrollAmount, pos);
+            // },
+            dismiss: function () {
+                releasePointerCapture();
+
+                //$(".pannable-diagram").css("cursor", "");
+                panEl.style.cursor = "";
+                that.untoggle();
+            }
+        });
+    }
+
+    onUntoggle() {
+        setDiagramHandle({});
+        $(".coloroption-pan")[0].classList.remove("coloroption-selected");
     }
 }

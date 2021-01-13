@@ -43,6 +43,8 @@ let emojimapping = {
 
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
 
+let panButton;
+
 function onDOMReady() {
     mapper = new Mapper($("#mapper")[0]);
     //mapper.setToColorMapping(colormap);
@@ -65,7 +67,7 @@ function onDOMReady() {
     setupOverlay();
 
     //printCoordOnDiagramClick();
-    paintOnDiagramClick();
+    //paintOnDiagramClick();
 
     colorselector = new ColorSelector();
     colorselector.update();
@@ -73,6 +75,8 @@ function onDOMReady() {
     setupSplitter();
 
     window.setTimeout(function () { diagram.updateViewSize(); }, 500);
+
+    panButton = new PanButton();
 
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {

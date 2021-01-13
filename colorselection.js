@@ -106,7 +106,7 @@ class ColorSelector {
         });
 
         this.newColorChooser.pickr.on("hide", instance => {
-            let id = mapper.registerNew({color: this.newColorChooser.pickr.getColor().toRGBA().toString(2)});
+            let id = mapper.registerNew({ color: this.newColorChooser.pickr.getColor().toRGBA().toString(2) });
             this.selectSingle(id);
             this.newColorChooserContainer.el.classList.add("hide");
         })
@@ -137,6 +137,7 @@ class ColorSelector {
     }
 
     selectSingle(id) {
+        paintOnDiagramClick();
         this.selectMulti([id]);
     }
 
@@ -161,5 +162,90 @@ class ColorSelector {
         }
         this.selectMulti(select);
     }
+}
+
+function paintOnDiagramClick() {
+    let capturedPointer = null;
+    let paintPixel = function (event, pos) {
+        let x = Math.floor((pos.x + diagram.panOffset.x) / diagram.tileSize);
+        let y = Math.floor((pos.y + diagram.panOffset.y) / diagram.tileSize);
+
+        let selected = colorselector.getSingleSelected();
+        if (selected != null)
+            diagram.setPixel(x, y, selected);
+
+        // x = pos.x / diagram.tileSize;
+        // y = pos.y / diagram.tileSize;
+
+        // console.log(`Clicked at tile (${x}, ${y})`);
+        //console.log(`Clicked at tile (${x}, ${y})`);
+        // if (addPointButton.getState() == 1)
+        //     setDiagramHandle({});
+    };
+
+    function isPointerCaptured(ev) {
+        return capturedPointer === true || capturedPointer === ev.pointerId;
+    }
+    function releasePointerCapture(ev) {
+        if (ev == null || capturedPointer === ev.pointerId) {
+            if (diagram.el.hasPointerCapture(capturedPointer)) {
+                console.log(`Releasing ${capturedPointer}`);
+                try {
+                    diagram.el.releasePointerCapture(capturedPointer);
+                } catch (e) {
+                    console.log(`Error releasing capture: ${e.message}`);
+                }
+            } else {
+                console.log(`Vacuously releasing ${capturedPointer}`);
+            }
+            capturedPointer = null;
+        } else if (capturedPointer === true) {
+            capturedPointer = null;
+        }
+    }
+
+    setDiagramHandle({
+        click: paintPixel,
+        pointerdown: function (event, pos) {
+            capturedPointer = true;
+            diagram.el.setPointerCapture(event.pointerId);
+            paintPixel(event, pos);
+            //event.preventDefault();
+        },
+        pointercancel: function (event, pos) {
+            if (!isPointerCaptured(event))
+                return;
+            capturedPointer = null;
+            //releasePointerCapture(event);
+            //event.preventDefault();
+        },
+        pointerup: function (event, pos) {
+            if (!isPointerCaptured(event))
+                return;
+            capturedPointer = null;
+            //releasePointerCapture(event);
+            //event.preventDefault();
+        },
+        pointermove: function (event, pos) {
+            if (!isPointerCaptured(event))
+                return;
+            paintPixel(event, pos);
+            //event.preventDefault();
+        },
+        gotpointercapture: function (event, pos) {
+            capturedPointer = event.pointerId;
+            //console.log(`Acquired ${event.pointerId}`);
+        },
+        lostpointercapture: function (event, pos) {
+            if (capturedPointer === event.pointerId)
+                capturedPointer = null;
+            //console.log(`Lost ${event.pointerId}`);
+        },
+        dismiss: function () {
+            releasePointerCapture();
+            colorselector.selectMulti([]);
+            //that.untoggle();
+        },
+    });
 }
 
