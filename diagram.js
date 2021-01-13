@@ -77,14 +77,14 @@ class Diagram {
         this.addGlobalDiagramMouseEvent("gotpointercapture");
         this.addGlobalDiagramMouseEvent("lostpointercapture");
 
-        this.setZoom(1.0);
-
         this.pixels = [];
         this.width = 0;
         this.height = 0;
 
         this.minWidthInView = this.tileSize;
         this.minHeightInView = this.tileSize;
+
+        this.setZoom(1.0);
 
         const that = this;
         window.addEventListener("resize", e => {
@@ -94,7 +94,7 @@ class Diagram {
 
     onResize() {
         this.updateViewSize();
-        this.setPanOffset(this.panOffset.x, this.panOffset.y);
+        //this.setPanOffset(this.panOffset.x, this.panOffset.y);
     }
 
     toSVGSpace(p, calcToSVGTransform = new DOMMatrix()) {
@@ -164,16 +164,21 @@ class Diagram {
     setZoom(value = 1.0, origin = null) {
         if (origin == null)
             origin = { x: 0, y: 0 };
-        let newZoom = Math.max(value, 1e-4);
+        let newZoom = Math.max(value, 1e-1);
+        newZoom = Math.min(newZoom, 50);
 
-        let xMargin = origin.x * this.zoom - this.panOffset.x;
-        let yMargin = origin.y * this.zoom - this.panOffset.y;
-        this.panOffset.x = origin.x * newZoom - xMargin;
-        this.panOffset.y = origin.y * newZoom - yMargin;
+        // let xMargin = origin.x * this.zoom - this.panOffset.x;
+        // let yMargin = origin.y * this.zoom - this.panOffset.y;
+        // this.panOffset.x = origin.x * newZoom - xMargin;
+        // this.panOffset.y = origin.y * newZoom - yMargin;
 
+        let oldZoom = this.zoom;
         this.zoom = newZoom;
         this.tileSize = this.naturalTileSize * this.zoom;
-        this.updatePositioning();
+        //this.updatePositioning();
+        this.redraw();
+        this.setPanOffset((this.panOffset.x + origin.x) * newZoom / oldZoom - origin.x,
+            (this.panOffset.y + origin.y) * newZoom / oldZoom - origin.y);
 
         if (this.theGrid != null) {
             let spacingLevel = Math.ceil(-Math.log(this.zoom * 5 / 2) / Math.log(this.theGrid.majorInterval));
@@ -199,12 +204,18 @@ class Diagram {
             //x = Math.min(x, (this.width - 1) * this.tileSize);
             x = Math.min(x, -(viewBounds.left + this.minWidthInView - this.width * this.tileSize));
             x = Math.max(x, -(viewBounds.right - this.minWidthInView));
+
+            if (this.minWidthInView > this.width * this.tileSize)
+                x = 0;
         }
 
         if (this.minHeightInView > -0.5) {
             //y = Math.min(y, (this.height - 1) * this.tileSize);
             y = Math.min(y, -(viewBounds.top + this.minHeightInView - this.height * this.tileSize));
             y = Math.max(y, -(viewBounds.bottom - this.minHeightInView));
+
+            if (this.minHeightInView > this.height * this.tileSize)
+                y = 0;
         }
 
         this.panOffset = { x: x, y: y };
@@ -310,7 +321,7 @@ class Diagram {
         if (this.isUpdatingViewSize)
             return;
         this.isUpdatingViewSize = true;
-        this.el.setAttribute("viewBox", `0 0 ${this.tileSize * this.width} ${this.tileSize * this.height}`);
+        this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
 
         // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
         let root = document.documentElement;
@@ -326,6 +337,11 @@ class Diagram {
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientWidth / aspectRatio}`);
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientHeight * aspectRatio} ${$("#pixelartSvg")[0].clientHeight}`);
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
+
+        let curViewBounds = this.getCurrentViewBounds();
+        this.minWidthInView = Math.max(this.tileSize, curViewBounds.width / 5);
+        this.minHeightInView = Math.max(this.tileSize, curViewBounds.height / 5);
+        this.setPanOffset(this.panOffset.x, this.panOffset.y);
 
         this.isUpdatingViewSize = false;
         delete this.isUpdatingViewSize;
@@ -533,6 +549,8 @@ class PanButton extends ToggleButton {
         const that = this;
         let capturedPointer = null;
 
+        let pointers = [];
+
         let isPointerCaptured = (ev) => {
             return capturedPointer === true || capturedPointer === ev.pointerId;
         }
@@ -579,7 +597,7 @@ class PanButton extends ToggleButton {
                 if (transfMatrix !== null) {
                     let point = DOMPoint.fromPoint(pos);
                     point = point.matrixTransform(transfMatrix)
-                        .matrixTransform(new DOMMatrix().scaleSelf(panContext.zoom, panContext.zoom))
+                        //.matrixTransform(new DOMMatrix().scaleSelf(panContext.zoom, panContext.zoom))
                         .matrixTransform(new DOMMatrix().translateSelf(panContext.panOffset.x, panContext.panOffset.y));
                     transfMatrix = new DOMMatrix().translateSelf(-pos.x, -pos.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
 
@@ -595,15 +613,15 @@ class PanButton extends ToggleButton {
                     capturedPointer = null;
                 //console.log(`Lost ${event.pointerId}`);
             },
-            // wheel: function (event, pos) {
-            //     let scrollAmount = event.deltaY;
-            //     if (event.deltaMode == 1) {
-            //         scrollAmount = -0.1 * scrollAmount / 10;
-            //     } else {
-            //         scrollAmount = scrollAmount / 1000;
-            //     }
-            //     panContext.zoomIncrease(scrollAmount, pos);
-            // },
+            wheel: function (event, pos) {
+                let scrollAmount = event.deltaY;
+                if (event.deltaMode == 1) {
+                    scrollAmount = -0.1 * scrollAmount / 10;
+                } else {
+                    scrollAmount = scrollAmount / 1000;
+                }
+                panContext.zoomIncrease(scrollAmount, pos);
+            },
             dismiss: function () {
                 releasePointerCapture();
 
