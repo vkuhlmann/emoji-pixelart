@@ -77,6 +77,11 @@ class Diagram {
         this.addGlobalDiagramMouseEvent("gotpointercapture");
         this.addGlobalDiagramMouseEvent("lostpointercapture");
 
+        this.addGlobalDiagramEvent("touchstart");
+        this.addGlobalDiagramEvent("touchmove");
+        this.addGlobalDiagramEvent("touchend");
+        this.addGlobalDiagramEvent("touchcancel");
+
         this.pixels = [];
         this.width = 0;
         this.height = 0;

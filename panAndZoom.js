@@ -21,7 +21,6 @@ function setVisualPointers(pointers) {
     }
 }
 
-
 class PanZoomController {
     constructor(targetEl, update) {
         this.targetEl = targetEl;
@@ -34,12 +33,16 @@ class PanZoomController {
 
         this.pointers = [];
         this.pointersHist = "";
-        this.update = update;
 
+        this.update = update;
         this.ondismiss = null;
+        this.clientToCoordSpace = null;
+        this.coordToClientSpace = null;
 
         this.zoom = 1.0;
         this.panOffset = { x: 0, y: 0 };
+
+        this.updateFrame = 0;
     }
 
     getZoom() {
@@ -81,6 +84,8 @@ class PanZoomController {
     }
 
     resetGrip() {
+        this.onresetgrip();
+
         this.resetGripPanOffset();
 
         this.gestureBaseDist = this.calcGripDist();
@@ -101,8 +106,10 @@ class PanZoomController {
     }
 
     setPointer(event, pos) {
+        if (this.isUsingTouch)
+            return;
         for (let i in this.pointers) {
-            if (this.pointers[i].ev.pointerId === event.pointerId) {
+            if (this.pointers[i]?.ev?.pointerId === event.pointerId) {
                 if (pos != null) {
                     this.pointers[i] = { ev: event, pos: pos };
                 } else {
@@ -112,7 +119,7 @@ class PanZoomController {
                     //this.pointersHist += "-";
                     // $("#outputArea")[0].value = this.pointersHist;
                 }
-                setVisualPointers(this.pointers);
+                //setVisualPointers(this.pointers);
                 return;
             }
         }
@@ -121,13 +128,13 @@ class PanZoomController {
         this.pointers.push({ ev: event, pos: pos });
         //this.pointersHist += "+";
         //$("#outputArea")[0].value = this.pointersHist;
-        setVisualPointers(this.pointers);
+        //setVisualPointers(this.pointers);
         //resetGrip();
     }
 
     hasPointer(event) {
         for (let i in this.pointers) {
-            if (this.pointers[i].ev.pointerId === event.pointerId)
+            if (this.pointers[i]?.ev?.pointerId === event.pointerId)
                 return true;
         }
         return false;
@@ -197,7 +204,10 @@ class PanZoomController {
         if (!this.hasPointer(event))
             return;
         this.setPointer(event, pos);
+        this.updatePanZoom();
+    }
 
+    updatePanZoom() {
         let grip = this.calcGripPoint();
         if (grip == null)
             return;
@@ -216,12 +226,16 @@ class PanZoomController {
 
         let dist;
         if (this.gestureBaseDist != null && (dist = this.calcGripDist()) != null) {
+            // this.pointersHist += " A";
+            // $("#outputArea")[0].value = this.pointersHist;
+
             let newZoom = (dist / this.gestureBaseDist) * this.gestureBaseZoom;
-            i += 1;
-            // if ((i % 100) == 1) {
+            this.updateFrame += 1;
+            // if ((this.updateFrame % 100) == 1) {
             //     this.pointersHist += ` ${(newZoom * 100).toFixed(0)}%`;
             //     $("#outputArea")[0].value = this.pointersHist;
             // }
+
             // if ((i % 100) == 1) {
             //     pointersHist += ` (${pointers[0].pos.x.toFixed(0)}, ${pointers[0].pos.y.toFixed(0)})&`
             //      + `(${pointers[1].pos.x.toFixed(0)}, ${pointers[1].pos.y.toFixed(0)})`;
@@ -249,7 +263,7 @@ class PanZoomController {
     wheel(event, pos) {
         let scrollAmount = event.deltaY;
         if (event.deltaMode == 1) {
-            scrollAmount = -0.1 * scrollAmount / 10;
+            scrollAmount = -0.2 * scrollAmount / 10;
         } else {
             scrollAmount = scrollAmount / 1000;
         }
@@ -261,11 +275,81 @@ class PanZoomController {
         this.resetGrip();
     }
 
-    dismiss() {
+    updateTouches(event) {
+        // this.pointersHist += ` (${event.targetTouches.length},${event.touches.length})`;
+        // $("#outputArea")[0].value = this.pointersHist;
+
+        this.pointers = [];
+        for (let p of event.touches) {
+            this.pointers.push({touch: p, pos: this.clientToCoordSpace(new DOMPoint(p.clientX, p.clientY))});
+        }
+        //setVisualPointers(this.pointers);
+    }
+
+    touchstart(event) {
+        this.isUsingTouch = true;
+        this.releaseCaptures();
+
+        this.updateTouches(event);
+
+        this.resetGrip();
+
+        // this.baseGrip = this.calcGripPoint();
+        // this.gestureBaseDist = this.calcGripDist();
+        // this.gestureBaseZoom = this.zoom;
+
+        // this.pointersHist += " +";
+        // $("#outputArea")[0].value = this.pointersHist;
+
+        // this.pointersHist += ` ${this.pointers.length}`;
+        // $("#outputArea")[0].value = this.pointersHist;
+    }
+
+    touchmove(event) {
+        this.updateTouches(event);
+
+        this.updatePanZoom();
+    }
+
+    touchend(event) {
+        this.updateTouches(event);
+        // this.pointersHist += " -";
+        //     $("#outputArea")[0].value = this.pointersHist;
+
+        if (this.pointers.length == 0) {
+            // this.pointersHist += " 0";
+            // $("#outputArea")[0].value = this.pointersHist;
+            
+            this.isUsingTouch = false;
+        }
+
+        this.resetGrip();
+    }
+
+    touchcancel(event) {
+        this.updateTouches(event);
+        // this.pointersHist += " -";
+        // $("#outputArea")[0].value = this.pointersHist;
+
+        if (this.pointers.length == 0) {
+            // this.pointersHist += " 0";
+            // $("#outputArea")[0].value = this.pointersHist;
+
+            this.isUsingTouch = false;
+        }
+
+        this.resetGrip();
+    }
+
+    releaseCaptures() {
         for (let p of this.pointers) {
-            if (this.targetEl.hasPointerCapture(p.ev.pointerId))
+            if (p.ev?.pointerId != null && this.targetEl.hasPointerCapture(p.ev.pointerId))
                 this.targetEl.releasePointerCapture(p.ev.pointerId);
         }
+    }
+
+    dismiss() {
+        this.releaseCaptures();
 
         //$(".pannable-diagram").css("cursor", "");
         this.targetEl.style.cursor = "";
@@ -299,6 +383,19 @@ class PanButton extends ToggleButton {
             that.untoggle();
         }
         this.isUpdatingTarget = false;
+
+        this.panAndZoom.clientToCoordSpace = (pos) => {
+            return diagram.toSVGSpace(pos);
+        };
+
+        this.panAndZoom.coordToClientSpace = (pos) => {
+            return diagram.toClientSpace(pos);
+        };
+
+        this.panAndZoom.onresetgrip = () => {
+            that.panAndZoom.setZoom(diagram.zoom);
+            that.panAndZoom.setPanOffset(diagram.panOffset.x, diagram.panOffset.y);
+        }
     }
 
     onToggle() {
