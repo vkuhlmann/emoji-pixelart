@@ -350,10 +350,10 @@ class Diagram {
 
 function setDiagramHandle(handlers) {
     if (handleDiagramAvailable && handleDiagram["dismiss"] != null) {
-        let dismissHandler = handleDiagram["dismiss"];
+        let prevHandler = handleDiagram;
         handleDiagram = {};
         handleDiagramAvailable = false;
-        dismissHandler();
+        prevHandler["dismiss"]();
     }
 
     handleDiagram = handlers;
@@ -528,7 +528,27 @@ class AddPointButton extends TwoStageToggleButton {
     }
 }
 
-class PanButton extends ToggleButton {
+function setVisualPointers(pointers) {
+    if (pointers.length >= 1) {
+        $("#pointerVisual0")[0].style.visibility = "visible";
+        $("#pointerVisual0")[0].setAttribute("cx", pointers[0].pos.x);
+        $("#pointerVisual0")[0].setAttribute("cy", pointers[0].pos.y);
+
+    } else {
+        $("#pointerVisual0")[0].style.visibility = "hidden";
+    }
+
+    if (pointers.length >= 2) {
+        $("#pointerVisual1")[0].style.visibility = "visible";
+        $("#pointerVisual1")[0].setAttribute("cx", pointers[1].pos.x);
+        $("#pointerVisual1")[0].setAttribute("cy", pointers[1].pos.y);
+
+    } else {
+        $("#pointerVisual1")[0].style.visibility = "hidden";
+    }
+}
+
+class PanButtonOld extends ToggleButton {
     constructor() {
         super($("#panButton")[0]);
     }
@@ -546,6 +566,7 @@ class PanButton extends ToggleButton {
         let transfMatrix = null;
         let prevDist = null;
         let prevZoom = 1.0;
+        let panOffset = { x: 0, y: 0 };
 
         // let originalOffset;
         // let grapPoint;
@@ -553,16 +574,17 @@ class PanButton extends ToggleButton {
         let capturedPointer = null;
 
         let pointers = [];
+        let pointersHist = "";
 
         let isPointerCaptured = (ev) => {
             return capturedPointer === true || capturedPointer === ev.pointerId;
         }
         let releasePointerCapture = (ev) => {
             if (ev == null || capturedPointer === ev.pointerId) {
-                if (diagram.el.hasPointerCapture(capturedPointer)) {
+                if (panEl.hasPointerCapture(capturedPointer)) {
                     //console.log(`Releasing ${capturedPointer}`);
                     try {
-                        diagram.el.releasePointerCapture(capturedPointer);
+                        panEl.releasePointerCapture(capturedPointer);
                     } catch (e) {
                         //console.log(`Error releasing capture: ${e.message}`);
                     }
@@ -580,6 +602,8 @@ class PanButton extends ToggleButton {
                 //transfMatrix = null;
                 return null;
             }
+            return new DOMPoint(pointers[0].pos.x, pointers[0].pos.y);
+
             let totX = 0.0;
             let totY = 0.0;
             for (let p of pointers) {
@@ -600,13 +624,22 @@ class PanButton extends ToggleButton {
         }
 
         let resetGrip = () => {
+            resetGripPanOffset();
+
+            prevDist = getGripDist();
+            prevZoom = diagram.zoom;
+
+            pointersHist += " Zoom grip reset";
+            $("#outputArea")[0].value = pointersHist;
+        }
+
+        let resetGripPanOffset = () => {
             let grip = getGripPoint();
             if (grip != null)
                 transfMatrix = new DOMMatrix().translateSelf(-grip.x, -grip.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
             else
                 transfMatrix = null;
-            prevDist = getGripDist();
-            prevZoom = diagram.zoom;
+            panOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
         }
 
         let setPointer = (event, pos) => {
@@ -616,14 +649,22 @@ class PanButton extends ToggleButton {
                         pointers[i] = { ev: event, pos: pos };
                     } else {
                         pointers.splice(i, 1);
+                        if (i == "0")
+                            resetGrip();
+                        pointersHist += "-";
+                        $("#outputArea")[0].value = pointersHist;
                     }
+                    setVisualPointers(pointers);
                     return;
                 }
             }
             if (pos == null)
                 return;
             pointers.push({ ev: event, pos: pos });
-            resetGrip();
+            pointersHist += "+";
+            $("#outputArea")[0].value = pointersHist;
+            setVisualPointers(pointers);
+            //resetGrip();
         }
 
         let hasPointer = (event) => {
@@ -633,17 +674,16 @@ class PanButton extends ToggleButton {
             }
             return false;
         }
-
-        let panOffset = { x: 0, y: 0 };
+        let i = 0;
 
         setDiagramHandle({
             pointerdown: function (event, pos) {
                 capturedPointer = true;
-                panEl.setPointerCapture(event.pointerId);
+                //panEl.setPointerCapture(event.pointerId);
                 setPointer(event, pos);
                 console.log(`Pointer ${event.pointerId} down`);
 
-                panOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
+                resetGrip();
 
                 // originalOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
                 // grapPoint = DOMPoint.fromPoint(pos);
@@ -659,18 +699,18 @@ class PanButton extends ToggleButton {
             pointerup: function (event, pos) {
                 setPointer(event, null);
 
+                //transfMatrix = null;
                 if (!isPointerCaptured(event))
                     return;
-                transfMatrix = null;
             },
             pointerout: function (event, pos) {
                 if (event.target !== panEl)
                     return;
                 setPointer(event, null);
 
+                //transfMatrix = null;
                 if (!isPointerCaptured(event))
                     return;
-                transfMatrix = null;
             },
             pointerleave: function (event, pos) {
                 if (event.target !== panEl)
@@ -678,9 +718,9 @@ class PanButton extends ToggleButton {
                 setPointer(event, null);
                 console.log(`Pointer ${event.pointerId} leave. Target: ${event.target}`);
 
+                //transfMatrix = null;
                 if (!isPointerCaptured(event))
                     return;
-                transfMatrix = null;
             },
             pointermove: function (event, pos) {
                 // if (!isPointerCaptured(event))
@@ -691,28 +731,45 @@ class PanButton extends ToggleButton {
                     return;
                 setPointer(event, pos);
 
-                if (transfMatrix !== null) {
-                    let grip = getGripPoint();
+                let grip = getGripPoint();
+                if (grip == null)
+                    return;
 
+                if (transfMatrix !== null) {
                     let point = DOMPoint.fromPoint(grip);
                     point = point.matrixTransform(transfMatrix)
                         //.matrixTransform(new DOMMatrix().scaleSelf(panContext.zoom, panContext.zoom))
                         .matrixTransform(new DOMMatrix().translateSelf(
                             panOffset.x, panOffset.y));
-                            //panContext.panOffset.x, panContext.panOffset.y));
+                    //panContext.panOffset.x, panContext.panOffset.y));
                     //transfMatrix = new DOMMatrix().translateSelf(-grip.x, -grip.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
 
-                    panOffset.x = point.x;
-                    panOffset.y = point.y;
-                    panContext.setPanOffset(panOffset.x, panOffset.y);//point.x, point.y);
+                    let newPanOffset = { x: point.x, y: point.y };
+
+                    // panOffset.x = point.x;
+                    // panOffset.y = point.y;
+                    panContext.setPanOffset(newPanOffset.x, newPanOffset.y);//point.x, point.y);
                 }
 
                 let dist;
                 if (prevDist != null && (dist = getGripDist()) != null) {
                     let newZoom = (dist / prevDist) * prevZoom;
-                    panContext.setZoom(newZoom);
+                    i += 1;
+                    if ((i % 100) == 1) {
+                        pointersHist += ` ${(newZoom * 100).toFixed(0)}%`;
+                        $("#outputArea")[0].value = pointersHist;
+                    }
+                    // if ((i % 100) == 1) {
+                    //     pointersHist += ` (${pointers[0].pos.x.toFixed(0)}, ${pointers[0].pos.y.toFixed(0)})&`
+                    //      + `(${pointers[1].pos.x.toFixed(0)}, ${pointers[1].pos.y.toFixed(0)})`;
+                    //     $("#outputArea")[0].value = pointersHist;
+                    // }
+                    panContext.setZoom(newZoom, grip);
+                    //panContext.setZoom(newZoom);
+                    //resetGrip();
+                    resetGripPanOffset();
                 }
-                resetGrip();
+                //resetGrip();
             },
             gotpointercapture: function (event, pos) {
                 capturedPointer = event.pointerId;
@@ -732,6 +789,7 @@ class PanButton extends ToggleButton {
                 }
                 panContext.zoomIncrease(scrollAmount, pos);
                 panOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
+                resetGrip();
             },
             dismiss: function () {
                 releasePointerCapture();
