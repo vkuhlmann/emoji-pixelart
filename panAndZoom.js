@@ -61,8 +61,8 @@ class PanZoomController {
         // this.panOffset.x = (origPanX + origin.x) * this.zoom / oldZoom - origin.x;
         // this.panOffset.y = (origPanY + origin.y) * this.zoom / oldZoom - origin.y;
 
-        this.panOffset.x = origin.x * this.zoom / oldZoom - (origin.x - this.panOffset.x);
-        this.panOffset.y = origin.y * this.zoom / oldZoom - (origin.y - this.panOffset.y);
+        this.panOffset.x = origin.x * this.zoom / oldZoom - (origin.x - origPanX);
+        this.panOffset.y = origin.y * this.zoom / oldZoom - (origin.y - origPanY);
 
         if (this.update != null)
             this.update();
@@ -86,8 +86,8 @@ class PanZoomController {
         this.gestureBaseDist = this.calcGripDist();
         this.gestureBaseZoom = this.zoom;
 
-        this.pointersHist += " Zoom grip reset";
-        $("#outputArea")[0].value = this.pointersHist;
+        // this.pointersHist += " Zoom grip reset";
+        // $("#outputArea")[0].value = this.pointersHist;
     }
 
     resetGripPanOffset() {
@@ -109,8 +109,8 @@ class PanZoomController {
                     this.pointers.splice(i, 1);
                     if (i == "0")
                         this.resetGrip();
-                    this.pointersHist += "-";
-                    $("#outputArea")[0].value = this.pointersHist;
+                    //this.pointersHist += "-";
+                    // $("#outputArea")[0].value = this.pointersHist;
                 }
                 setVisualPointers(this.pointers);
                 return;
@@ -119,8 +119,8 @@ class PanZoomController {
         if (pos == null)
             return;
         this.pointers.push({ ev: event, pos: pos });
-        this.pointersHist += "+";
-        $("#outputArea")[0].value = this.pointersHist;
+        //this.pointersHist += "+";
+        //$("#outputArea")[0].value = this.pointersHist;
         setVisualPointers(this.pointers);
         //resetGrip();
     }
@@ -187,7 +187,7 @@ class PanZoomController {
     pointerleave(event) {
         if (event.target !== this.targetEl)
             return;
-        console.log(`Pointer ${event.pointerId} leave. Target: ${event.target}`);
+        //console.log(`Pointer ${event.pointerId} leave. Target: ${event.target}`);
         this.pointerend(event);
     }
 
@@ -218,10 +218,10 @@ class PanZoomController {
         if (this.gestureBaseDist != null && (dist = this.calcGripDist()) != null) {
             let newZoom = (dist / this.gestureBaseDist) * this.gestureBaseZoom;
             i += 1;
-            if ((i % 100) == 1) {
-                this.pointersHist += ` ${(newZoom * 100).toFixed(0)}%`;
-                $("#outputArea")[0].value = this.pointersHist;
-            }
+            // if ((i % 100) == 1) {
+            //     this.pointersHist += ` ${(newZoom * 100).toFixed(0)}%`;
+            //     $("#outputArea")[0].value = this.pointersHist;
+            // }
             // if ((i % 100) == 1) {
             //     pointersHist += ` (${pointers[0].pos.x.toFixed(0)}, ${pointers[0].pos.y.toFixed(0)})&`
             //      + `(${pointers[1].pos.x.toFixed(0)}, ${pointers[1].pos.y.toFixed(0)})`;
@@ -317,8 +317,8 @@ class PanButton extends ToggleButton {
         }
 
         diagram.setPanOffset(this.panAndZoom.getPanOffset().x, this.panAndZoom.getPanOffset().y);
-        if (diagram.panOffset.x != this.panAndZoom.panOffset.x || diagram.panOffset.y != this.panAndZoom.panOffset.y)
-            this.panAndZoom.setPanOffset(diagram.panOffset.x, diagram.panOffset.y);
+        // if (diagram.panOffset.x != this.panAndZoom.panOffset.x || diagram.panOffset.y != this.panAndZoom.panOffset.y)
+        //     this.panAndZoom.setPanOffset(diagram.panOffset.x, diagram.panOffset.y);
 
         this.isUpdatingTarget = false;
     }
