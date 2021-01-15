@@ -77,6 +77,11 @@ class Diagram {
         this.addGlobalDiagramMouseEvent("gotpointercapture");
         this.addGlobalDiagramMouseEvent("lostpointercapture");
 
+        this.addGlobalDiagramEvent("touchstart");
+        this.addGlobalDiagramEvent("touchmove");
+        this.addGlobalDiagramEvent("touchend");
+        this.addGlobalDiagramEvent("touchcancel");
+
         this.pixels = [];
         this.width = 0;
         this.height = 0;
@@ -202,20 +207,20 @@ class Diagram {
         let viewBounds = this.getCurrentViewBounds();
         if (this.minWidthInView > -0.5) {
             //x = Math.min(x, (this.width - 1) * this.tileSize);
-            x = Math.min(x, -(viewBounds.left + this.minWidthInView - this.width * this.tileSize));
-            x = Math.max(x, -(viewBounds.right - this.minWidthInView));
+            let width = this.width * this.tileSize;
+            let minWidthInView = Math.min(this.minWidthInView, width);
 
-            if (this.minWidthInView > this.width * this.tileSize)
-                x = 0;
+            x = Math.min(x, -(viewBounds.left + minWidthInView - width));
+            x = Math.max(x, -(viewBounds.right - minWidthInView));
         }
 
         if (this.minHeightInView > -0.5) {
             //y = Math.min(y, (this.height - 1) * this.tileSize);
-            y = Math.min(y, -(viewBounds.top + this.minHeightInView - this.height * this.tileSize));
-            y = Math.max(y, -(viewBounds.bottom - this.minHeightInView));
+            let height = this.height * this.tileSize;
+            let minHeightInView = Math.min(this.minHeightInView, height);
 
-            if (this.minHeightInView > this.height * this.tileSize)
-                y = 0;
+            y = Math.min(y, -(viewBounds.top + minHeightInView - height));
+            y = Math.max(y, -(viewBounds.bottom - minHeightInView));
         }
 
         this.panOffset = { x: x, y: y };
@@ -350,10 +355,10 @@ class Diagram {
 
 function setDiagramHandle(handlers) {
     if (handleDiagramAvailable && handleDiagram["dismiss"] != null) {
-        let dismissHandler = handleDiagram["dismiss"];
+        let prevHandler = handleDiagram;
         handleDiagram = {};
         handleDiagramAvailable = false;
-        dismissHandler();
+        prevHandler["dismiss"]();
     }
 
     handleDiagram = handlers;
@@ -498,258 +503,3 @@ class TwoStageToggleButton extends ToggleButton {
     }
 }
 
-class AddPointButton extends TwoStageToggleButton {
-    constructor() {
-        super($("#addPoint")[0]);
-    }
-
-    onUntoggle() {
-        setDiagramHandle({});
-    }
-
-    onToggleFirst() {
-        const that = this;
-        setDiagramHandle({
-            click: function (event, pos) {
-                PointMarking.create({ type: "point", x: pos.x, y: pos.y, label: takeNextLabel() }, diagram);
-                //diagram.addPointMarking(pos);
-
-                if (addPointButton.getState() == 1)
-                    setDiagramHandle({});
-            },
-            dismiss: function () {
-                that.untoggle();
-            }
-        });
-    }
-
-    onToggleSecond() {
-
-    }
-}
-
-class PanButton extends ToggleButton {
-    constructor() {
-        super($("#panButton")[0]);
-    }
-
-    onToggle() {
-        let panEl = $("#pixelartSvg")[0];
-        let panContext = diagram;
-
-        panEl.style.cursor = "all-scroll";
-
-        $(".coloroption-pan")[0].classList.add("coloroption-selected");
-
-        //$("#pixelartSvg").css("cursor", "all-scroll");
-
-        let transfMatrix = null;
-        let prevDist = null;
-        let prevZoom = 1.0;
-
-        // let originalOffset;
-        // let grapPoint;
-        const that = this;
-        let capturedPointer = null;
-
-        let pointers = [];
-
-        let isPointerCaptured = (ev) => {
-            return capturedPointer === true || capturedPointer === ev.pointerId;
-        }
-        let releasePointerCapture = (ev) => {
-            if (ev == null || capturedPointer === ev.pointerId) {
-                if (diagram.el.hasPointerCapture(capturedPointer)) {
-                    //console.log(`Releasing ${capturedPointer}`);
-                    try {
-                        diagram.el.releasePointerCapture(capturedPointer);
-                    } catch (e) {
-                        //console.log(`Error releasing capture: ${e.message}`);
-                    }
-                } else {
-                    //console.log(`Vacuously releasing ${capturedPointer}`);
-                }
-                capturedPointer = null;
-            } else if (capturedPointer === true) {
-                capturedPointer = null;
-            }
-        }
-
-        let getGripPoint = () => {
-            if (pointers.length == 0) {
-                //transfMatrix = null;
-                return null;
-            }
-            let totX = 0.0;
-            let totY = 0.0;
-            for (let p of pointers) {
-                totX += p.pos.x;
-                totY += p.pos.y;
-            }
-            return new DOMPoint(totX / pointers.length, totY / pointers.length);
-        }
-
-        let getGripDist = () => {
-            if (pointers.length < 2)
-                return null;
-            //console.log(JSON.stringify(pointers, null, 4));
-            let deltaX = pointers[1].pos.x - pointers[0].pos.x;
-            let deltaY = pointers[1].pos.y - pointers[0].pos.y;
-            let dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            return dist;
-        }
-
-        let resetGrip = () => {
-            let grip = getGripPoint();
-            if (grip != null)
-                transfMatrix = new DOMMatrix().translateSelf(-grip.x, -grip.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
-            else
-                transfMatrix = null;
-            prevDist = getGripDist();
-            prevZoom = diagram.zoom;
-        }
-
-        let setPointer = (event, pos) => {
-            for (let i in pointers) {
-                if (pointers[i].ev.pointerId === event.pointerId) {
-                    if (pos != null) {
-                        pointers[i] = { ev: event, pos: pos };
-                    } else {
-                        pointers.splice(i, 1);
-                    }
-                    return;
-                }
-            }
-            if (pos == null)
-                return;
-            pointers.push({ ev: event, pos: pos });
-            resetGrip();
-        }
-
-        let hasPointer = (event) => {
-            for (let i in pointers) {
-                if (pointers[i].ev.pointerId === event.pointerId)
-                    return true;
-            }
-            return false;
-        }
-
-        let panOffset = { x: 0, y: 0 };
-
-        setDiagramHandle({
-            pointerdown: function (event, pos) {
-                capturedPointer = true;
-                panEl.setPointerCapture(event.pointerId);
-                setPointer(event, pos);
-                console.log(`Pointer ${event.pointerId} down`);
-
-                panOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
-
-                // originalOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
-                // grapPoint = DOMPoint.fromPoint(pos);
-                // transfMatrix = new DOMMatrix().translateSelf(-grapPoint.x, -grapPoint.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
-            },
-            pointercancel: function (event, pos) {
-                setPointer(event, null);
-
-                if (!isPointerCaptured(event))
-                    return;
-                capturedPointer = null;
-            },
-            pointerup: function (event, pos) {
-                setPointer(event, null);
-
-                if (!isPointerCaptured(event))
-                    return;
-                transfMatrix = null;
-            },
-            pointerout: function (event, pos) {
-                if (event.target !== panEl)
-                    return;
-                setPointer(event, null);
-
-                if (!isPointerCaptured(event))
-                    return;
-                transfMatrix = null;
-            },
-            pointerleave: function (event, pos) {
-                if (event.target !== panEl)
-                    return;
-                setPointer(event, null);
-                console.log(`Pointer ${event.pointerId} leave. Target: ${event.target}`);
-
-                if (!isPointerCaptured(event))
-                    return;
-                transfMatrix = null;
-            },
-            pointermove: function (event, pos) {
-                // if (!isPointerCaptured(event))
-                //     return;
-                if (pointers.length > 0)
-                    event = event;
-                if (!hasPointer(event))
-                    return;
-                setPointer(event, pos);
-
-                if (transfMatrix !== null) {
-                    let grip = getGripPoint();
-
-                    let point = DOMPoint.fromPoint(grip);
-                    point = point.matrixTransform(transfMatrix)
-                        //.matrixTransform(new DOMMatrix().scaleSelf(panContext.zoom, panContext.zoom))
-                        .matrixTransform(new DOMMatrix().translateSelf(
-                            panOffset.x, panOffset.y));
-                            //panContext.panOffset.x, panContext.panOffset.y));
-                    //transfMatrix = new DOMMatrix().translateSelf(-grip.x, -grip.y).preMultiplySelf(new DOMMatrix().scaleSelf(-1, -1));
-
-                    panOffset.x = point.x;
-                    panOffset.y = point.y;
-                    panContext.setPanOffset(panOffset.x, panOffset.y);//point.x, point.y);
-                }
-
-                let dist;
-                if (prevDist != null && (dist = getGripDist()) != null) {
-                    let newZoom = (dist / prevDist) * prevZoom;
-                    panContext.setZoom(newZoom);
-                }
-                resetGrip();
-            },
-            gotpointercapture: function (event, pos) {
-                capturedPointer = event.pointerId;
-                //console.log(`Acquired ${event.pointerId}`);
-            },
-            lostpointercapture: function (event, pos) {
-                if (capturedPointer === event.pointerId)
-                    capturedPointer = null;
-                //console.log(`Lost ${event.pointerId}`);
-            },
-            wheel: function (event, pos) {
-                let scrollAmount = event.deltaY;
-                if (event.deltaMode == 1) {
-                    scrollAmount = -0.1 * scrollAmount / 10;
-                } else {
-                    scrollAmount = scrollAmount / 1000;
-                }
-                panContext.zoomIncrease(scrollAmount, pos);
-                panOffset = { x: panContext.panOffset.x, y: panContext.panOffset.y };
-            },
-            dismiss: function () {
-                releasePointerCapture();
-
-                for (let p of pointers) {
-                    if (panEl.hasPointerCapture(p.ev.pointerId))
-                        panEl.releasePointerCapture(p.ev.pointerId);
-                }
-
-                //$(".pannable-diagram").css("cursor", "");
-                panEl.style.cursor = "";
-                that.untoggle();
-            }
-        });
-    }
-
-    onUntoggle() {
-        setDiagramHandle({});
-        $(".coloroption-pan")[0].classList.remove("coloroption-selected");
-    }
-}
