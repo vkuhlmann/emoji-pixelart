@@ -85,6 +85,8 @@ class Diagram {
         this.pixels = [];
         this.width = 0;
         this.height = 0;
+        this.maxZoom = 50;
+        this.minZoom = 1e-1;
 
         this.minWidthInView = this.tileSize;
         this.minHeightInView = this.tileSize;
@@ -169,8 +171,8 @@ class Diagram {
     setZoom(value = 1.0, origin = null) {
         if (origin == null)
             origin = { x: 0, y: 0 };
-        let newZoom = Math.max(value, 1e-1);
-        newZoom = Math.min(newZoom, 50);
+        let newZoom = Math.max(value, this.minZoom);
+        newZoom = Math.min(newZoom, this.maxZoom);
 
         // let xMargin = origin.x * this.zoom - this.panOffset.x;
         // let yMargin = origin.y * this.zoom - this.panOffset.y;
@@ -328,6 +330,17 @@ class Diagram {
         this.isUpdatingViewSize = true;
         this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
 
+        let resizeFrameEl = $("#resizeFrame")[0];
+        let resizeBoxEl = $("#resizeBox")[0];
+        let resizeBox2El = $("#resizeBox2")[0];
+        if (resizeBoxEl != null) {
+            resizeBoxEl.setAttribute("width", `${this.tileSize * this.width}`);
+            resizeBoxEl.setAttribute("height", `${this.tileSize * this.height}`);
+
+            resizeBox2El.setAttribute("width", `${this.tileSize * this.width}`);
+            resizeBox2El.setAttribute("height", `${this.tileSize * this.height}`);
+        }
+
         // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
         let root = document.documentElement;
         root.style.setProperty("--pixelswidth", this.width);
@@ -344,8 +357,11 @@ class Diagram {
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
 
         let curViewBounds = this.getCurrentViewBounds();
-        this.minWidthInView = Math.max(this.tileSize, curViewBounds.width / 5);
-        this.minHeightInView = Math.max(this.tileSize, curViewBounds.height / 5);
+        // this.minWidthInView = Math.max(this.tileSize, curViewBounds.width / 5);
+        // this.minHeightInView = Math.max(this.tileSize, curViewBounds.height / 5);
+        this.minWidthInView = curViewBounds.width / 5;
+        this.minHeightInView = curViewBounds.height / 5;
+        this.maxZoom = Math.max(this.height, 1.5);
         this.setPanOffset(this.panOffset.x, this.panOffset.y);
 
         this.isUpdatingViewSize = false;

@@ -121,10 +121,11 @@
 .toolbar-content {
     width: 100%;
     display: flex;
-    flex-flow: row nowrap;
+    flex-flow: row wrap;
     align-items: center;
     list-style: none;
-    gap: 10px;
+    //gap: 10px;
+    gap: 0.1rem;
     margin: 0px;
     padding-left: 0px;
 }
@@ -215,7 +216,8 @@
     }
 
     &.coloroption-new,
-    &.coloroption-pan {
+    &.coloroption-pan,
+    &.coloroption-resize {
         .colordisplay {
             background-color: #fff;
             display: flex;
