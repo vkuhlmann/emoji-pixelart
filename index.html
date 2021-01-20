@@ -32,6 +32,7 @@
     <script src="diagram.js"></script>
     <script src="colorselection.js"></script>
     <script src="panAndZoom.js"></script>
+    <script src="resizing.js"></script>
     <script src="layout.js"></script>
 
     <!-- Pickr themes -->
@@ -117,7 +118,7 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="coloroption coloroption-resize">
+                        <div class="coloroption coloroption-resize" style="display:none;">
                             <button type="button" role="button" class="colordisplay" id="resizeButton">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="100%" viewBox="0 0 16 16">
                                     <!-- <style>
@@ -221,12 +222,17 @@
                             <g id="svgPixels">
 
                             </g>
-                            <g id="resizeFrame">
+                            <g id="resizeFrame" style="visibility:hidden;">
                                 <rect id="resizeBox" x="0" y="0" width="100" height="100" fill="none"
                                     stroke="hsl(122, 50%, 50%)" style="stroke-width:12.5px;" rx="12.5" ry="12.5" />
                                 <rect id="resizeBox2" x="0" y="0" width="100" height="100" fill="none"
                                     stroke="hsl(122, 50%, 32%)" style="stroke-width:5px;" rx="12.5" ry="12.5" />
-                                <circle id="handleRight" r="15" cx="100" cy="50" fill="hsl(122, 100%, 47%)" />
+                                <g id="handleRight">
+                                    <circle r="15" cx="0" cy="0" fill="hsl(122, 100%, 47%)" style="cursor:ew-resize;" />
+                                </g>
+                                <g id="handleBottom">
+                                    <circle r="15" cx="0" cy="0" fill="hsl(122, 100%, 47%)" style="cursor:ns-resize;" />
+                                </g>                                
                             </g>
                         </g>
                         <circle cx="0" cy="0" style="visibility:hidden;" r="30" fill="red" id="pointerVisual0" />

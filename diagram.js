@@ -132,7 +132,7 @@ class Diagram {
         const that = this;
         this.el.addEventListener(name, function (ev) {
             return func(ev, that.toSVGSpace({ x: ev.clientX, y: ev.clientY }));//that.toSVGSpace(DOMToVec({ x: ev.clientX, y: ev.clientY })));
-        }, true);
+        }, false);
     }
 
     addGlobalDiagramMouseEvent(eventName) {
@@ -140,7 +140,7 @@ class Diagram {
             if (!handleDiagramAvailable)
                 return;
             ev.preventDefault();
-            ev.stopPropagation();
+            //ev.stopPropagation();
 
             if (handleDiagram[eventName] == null)
                 return;
@@ -311,9 +311,9 @@ class Diagram {
         }
 
         while (this.pixels.length > this.height) {
-            while (this.pixels[this.height].length > this.width) {
-                this.pixels[this.height][this.width].remove();
-                this.pixels[this.height].splice(this.width, 1);
+            while (this.pixels[this.height].length > 0) {
+                this.pixels[this.height][0].remove();
+                this.pixels[this.height].splice(0, 1);
             }
             this.pixels.splice(this.height, 1);
         }
@@ -328,18 +328,15 @@ class Diagram {
         if (this.isUpdatingViewSize)
             return;
         this.isUpdatingViewSize = true;
-        this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
 
-        let resizeFrameEl = $("#resizeFrame")[0];
-        let resizeBoxEl = $("#resizeBox")[0];
-        let resizeBox2El = $("#resizeBox2")[0];
-        if (resizeBoxEl != null) {
-            resizeBoxEl.setAttribute("width", `${this.tileSize * this.width}`);
-            resizeBoxEl.setAttribute("height", `${this.tileSize * this.height}`);
-
-            resizeBox2El.setAttribute("width", `${this.tileSize * this.width}`);
-            resizeBox2El.setAttribute("height", `${this.tileSize * this.height}`);
+        if (resizeController?.isResizing) {
+            const that = this;
+            resizeController.onResizeDone = () => {that.updateViewSize()};
+        } else {
+            this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
         }
+        if (resizeController != null)
+            resizeController.updateResizeFrame();
 
         // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
         let root = document.documentElement;
@@ -367,6 +364,8 @@ class Diagram {
         this.isUpdatingViewSize = false;
         delete this.isUpdatingViewSize;
     }
+
+
 }
 
 function setDiagramHandle(handlers) {

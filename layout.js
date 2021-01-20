@@ -44,6 +44,8 @@ let emojimapping = {
 let colormap = { ".": "rgb(181,186,253)", "x": "rgb(63,72,204)" };
 
 let panButton;
+let resizeButton;
+let resizeController;
 
 function onDOMReady() {
     mapper = new Mapper($("#mapper")[0]);
@@ -53,6 +55,8 @@ function onDOMReady() {
     mapper.update();
 
     diagram = new Diagram();
+    resizeButton = new ResizeButton();
+    resizeController = new ResizeController();
 
     updateSVGDisplay();
     updateEmojiOutput();
@@ -77,6 +81,7 @@ function onDOMReady() {
     window.setTimeout(function () { diagram.updateViewSize(); }, 500);
 
     panButton = new PanButton();
+
 
     // let isResizable = false;
     // let onPanelsContainerResize = function (e) {
@@ -239,7 +244,7 @@ function increaseWidth(width, fillColorId = null) {
 function decreaseWidth(width) {
     let newPixelArt = [];
     for (let row of pixelart) {
-        newPixelArt.push(row.slice(0, width));
+        newPixelArt.push(row.slice(0, Math.max(width, 1)));
     }
     pixelart = newPixelArt;
     updateSVGDisplay();
@@ -259,7 +264,7 @@ function increaseHeight(height, fillColorId = null) {
 }
 
 function decreaseHeight(height) {
-    pixelart.splice(height);
+    pixelart.splice(Math.max(height, 1));
     updateSVGDisplay();
     updateEmojiOutput();
 }
@@ -270,6 +275,7 @@ function setWidth(width, fillColorId = null) {
         decreaseWidth(width);
     else if (width > diagram.width)
         increaseWidth(width, fillColorId);
+    diagram.redraw();
 }
 
 function setHeight(height, fillColorId = null) {
