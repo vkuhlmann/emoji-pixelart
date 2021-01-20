@@ -287,6 +287,8 @@ class PanZoomController {
     }
 
     touchstart(event) {
+        if (resizeController != null && resizeController.isResizing)
+            return;
         this.isUsingTouch = true;
         this.releaseCaptures();
 
@@ -306,12 +308,16 @@ class PanZoomController {
     }
 
     touchmove(event) {
+        if (resizeController != null && resizeController.isResizing)
+            return;
         this.updateTouches(event);
 
         this.updatePanZoom();
     }
 
     touchend(event) {
+        if (resizeController != null && resizeController.isResizing)
+            return;
         this.updateTouches(event);
         // this.pointersHist += " -";
         //     $("#outputArea")[0].value = this.pointersHist;
@@ -327,6 +333,8 @@ class PanZoomController {
     }
 
     touchcancel(event) {
+        if (resizeController != null && resizeController.isResizing)
+            return;
         this.updateTouches(event);
         // this.pointersHist += " -";
         // $("#outputArea")[0].value = this.pointersHist;

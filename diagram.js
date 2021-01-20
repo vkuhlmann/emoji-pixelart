@@ -324,6 +324,11 @@ class Diagram {
         // --pixelsviewwidthforheight: 100vw;
     }
 
+    resetView() {
+        this.setZoom(1.0);
+        this.setPanOffset(0.0, 0.0);
+    }
+
     updateViewSize() {
         if (this.isUpdatingViewSize)
             return;
@@ -331,23 +336,28 @@ class Diagram {
 
         if (resizeController?.isResizing) {
             const that = this;
-            resizeController.onResizeDone = () => {that.updateViewSize()};
+            resizeController.onResizeDone = () => {
+                that.resetView();
+                that.updateViewSize();
+            };
         } else {
             this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
         }
         if (resizeController != null)
             resizeController.updateResizeFrame();
 
-        // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
-        let root = document.documentElement;
-        root.style.setProperty("--pixelswidth", this.width);
-        root.style.setProperty("--pixelsheight", this.height);
+        if (!(resizeController?.isResizing)) {
+            // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
+            let root = document.documentElement;
+            root.style.setProperty("--pixelswidth", this.width);
+            root.style.setProperty("--pixelsheight", this.height);
 
-        let aspectRatio = this.width / this.height;
-        let rectPanel = $("#pixelartPanel")[0].getBoundingClientRect();
-        let rectSvg = $("#pixelartSvg")[0].getBoundingClientRect();
-        root.style.setProperty("--pixelsview-atwidth-height", `${rectSvg.width / aspectRatio + rectPanel.width - rectSvg.width}px`);
-        root.style.setProperty("--pixelsview-atheight-width", `${rectSvg.height * aspectRatio + rectPanel.height - rectSvg.height}px`);
+            let aspectRatio = this.width / this.height;
+            let rectPanel = $("#pixelartPanel")[0].getBoundingClientRect();
+            let rectSvg = $("#pixelartSvg")[0].getBoundingClientRect();
+            root.style.setProperty("--pixelsview-atwidth-height", `${rectSvg.width / aspectRatio + rectPanel.width - rectSvg.width}px`);
+            root.style.setProperty("--pixelsview-atheight-width", `${rectSvg.height * aspectRatio + rectPanel.height - rectSvg.height}px`);
+        }
 
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientWidth / aspectRatio}`);
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientHeight * aspectRatio} ${$("#pixelartSvg")[0].clientHeight}`);
