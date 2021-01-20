@@ -85,6 +85,8 @@ class Diagram {
         this.pixels = [];
         this.width = 0;
         this.height = 0;
+        this.maxZoom = 50;
+        this.minZoom = 1e-1;
 
         this.minWidthInView = this.tileSize;
         this.minHeightInView = this.tileSize;
@@ -130,7 +132,7 @@ class Diagram {
         const that = this;
         this.el.addEventListener(name, function (ev) {
             return func(ev, that.toSVGSpace({ x: ev.clientX, y: ev.clientY }));//that.toSVGSpace(DOMToVec({ x: ev.clientX, y: ev.clientY })));
-        }, true);
+        }, false);
     }
 
     addGlobalDiagramMouseEvent(eventName) {
@@ -138,7 +140,7 @@ class Diagram {
             if (!handleDiagramAvailable)
                 return;
             ev.preventDefault();
-            ev.stopPropagation();
+            //ev.stopPropagation();
 
             if (handleDiagram[eventName] == null)
                 return;
@@ -169,8 +171,8 @@ class Diagram {
     setZoom(value = 1.0, origin = null) {
         if (origin == null)
             origin = { x: 0, y: 0 };
-        let newZoom = Math.max(value, 1e-1);
-        newZoom = Math.min(newZoom, 50);
+        let newZoom = Math.max(value, this.minZoom);
+        newZoom = Math.min(newZoom, this.maxZoom);
 
         // let xMargin = origin.x * this.zoom - this.panOffset.x;
         // let yMargin = origin.y * this.zoom - this.panOffset.y;
@@ -309,9 +311,9 @@ class Diagram {
         }
 
         while (this.pixels.length > this.height) {
-            while (this.pixels[this.height].length > this.width) {
-                this.pixels[this.height][this.width].remove();
-                this.pixels[this.height].splice(this.width, 1);
+            while (this.pixels[this.height].length > 0) {
+                this.pixels[this.height][0].remove();
+                this.pixels[this.height].splice(0, 1);
             }
             this.pixels.splice(this.height, 1);
         }
@@ -326,7 +328,15 @@ class Diagram {
         if (this.isUpdatingViewSize)
             return;
         this.isUpdatingViewSize = true;
-        this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
+
+        if (resizeController?.isResizing) {
+            const that = this;
+            resizeController.onResizeDone = () => {that.updateViewSize()};
+        } else {
+            this.el.setAttribute("viewBox", `0 0 ${this.naturalTileSize * this.width} ${this.naturalTileSize * this.height}`);
+        }
+        if (resizeController != null)
+            resizeController.updateResizeFrame();
 
         // Source: https://css-tricks.com/updating-a-css-variable-with-javascript/
         let root = document.documentElement;
@@ -344,13 +354,18 @@ class Diagram {
         // $("#pixelartSvg")[0].setAttribute("viewBox", `0 0 ${$("#pixelartSvg")[0].clientWidth} ${$("#pixelartSvg")[0].clientHeight}`);
 
         let curViewBounds = this.getCurrentViewBounds();
-        this.minWidthInView = Math.max(this.tileSize, curViewBounds.width / 5);
-        this.minHeightInView = Math.max(this.tileSize, curViewBounds.height / 5);
+        // this.minWidthInView = Math.max(this.tileSize, curViewBounds.width / 5);
+        // this.minHeightInView = Math.max(this.tileSize, curViewBounds.height / 5);
+        this.minWidthInView = curViewBounds.width / 5;
+        this.minHeightInView = curViewBounds.height / 5;
+        this.maxZoom = Math.max(this.height, 1.5);
         this.setPanOffset(this.panOffset.x, this.panOffset.y);
 
         this.isUpdatingViewSize = false;
         delete this.isUpdatingViewSize;
     }
+
+
 }
 
 function setDiagramHandle(handlers) {

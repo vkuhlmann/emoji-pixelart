@@ -381,6 +381,8 @@ class PanButton extends ToggleButton {
         this.panAndZoom = new PanZoomController($("#pixelartSvg")[0], () => { that.updateTarget() });
         this.panAndZoom.ondismiss = () => {
             that.untoggle();
+            if (resizeController != null)
+                resizeController.setInvisible();
         }
         this.isUpdatingTarget = false;
 
@@ -401,6 +403,8 @@ class PanButton extends ToggleButton {
     onToggle() {
         $(".coloroption-pan")[0].classList.add("coloroption-selected");
         this.panAndZoom.engage();
+        if (resizeController != null)
+            resizeController.setVisible();
     }
 
     updateTarget() {

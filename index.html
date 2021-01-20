@@ -32,6 +32,7 @@
     <script src="diagram.js"></script>
     <script src="colorselection.js"></script>
     <script src="panAndZoom.js"></script>
+    <script src="resizing.js"></script>
     <script src="layout.js"></script>
 
     <!-- Pickr themes -->
@@ -63,22 +64,24 @@
                         <a class="nav-link" href="#">WIP</a>
                     </li> -->
 
-                    <li class="nav-item">
+                    <li class="nav-item" style="margin-right:5px;">
                         <button type="button" class="button-toggle" id="importImage"
                             style="display:flex;flex-flow:row nowrap;align-items:center;">
                             <span style="margin-left:5px;">Load</span>
                         </button>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" style="margin-right:0px;">
                         <button type="button" class="button-toggle" id="saveImage"
                             style="display:flex;flex-flow:row nowrap;align-items:center;">
                             <span style="margin-left:5px;">Save</span>
                         </button>
                     </li>
-                    <li class="nav-item"
-                        style="display:block;width:2px;height:25px;background-color:#ccc;border-radius:1px;margin-left:10px;margin-right:10px;">
+                    <li class="nav-item" style="
+                        display:block;width:2px;height:25px;
+                        background-color:#ccc;border-radius:1px;
+                        margin-left:10px;margin-right:10px;">
                     </li>
-                    <li class="nav-item colorselector" id="colorSelector">
+                    <li class="nav-item colorselector" style="display:contents;" id="colorSelector">
                         <div class="coloroption coloroption-pan">
                             <button type="button" role="button" class="colordisplay" id="panButton">
                                 <svg xmlns="http://www.w3.org/2000/svg" height="100%" viewBox="0 0 16 16">
@@ -111,6 +114,43 @@
                                     <g transform="translate(8, 8)scale(0.7, 0.7)translate(-8, -8)">
                                         <path fill-rule="evenodd" stroke="none" fill="currentColor"
                                             d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z" />
+                                    </g>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="coloroption coloroption-resize" style="display:none;">
+                            <button type="button" role="button" class="colordisplay" id="resizeButton">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="100%" viewBox="0 0 16 16">
+                                    <!-- <style>
+                                        :root {
+                                            --stripes-partial-height: 1.0;
+                                            --stripes-abs-height: calc(var(--stripes-partial-height) * 3.5355);
+                                        }
+                                    </style> -->
+                                    <defs>
+                                        <pattern id="stripes" viewBox="0,0,10,10" width="70%" height="70%">
+                                            <!--<polygon points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2"/>-->
+                                            <!--<polygon points="0,0 2,5 0,10 5,8 10,10 8,5 10,0 5,2"/>-->
+                                            <!--
+                                            import math
+                                            partialHeight = 1.0
+                                            absHeight = partialHeight * 5 / math.sqrt(2)
+                                            
+                                            width = 15 [\simeq \sqrt{2}] + height = 20, x = 5 - width/2 = -5 -->
+                                            <rect x="-5" y="2.5" width="20" height="3.536" transform="rotate(45 5 5)"
+                                                fill="#eee" />
+                                            <rect x="-5" y="2.5" width="20" height="3.536"
+                                                transform="translate(-10 0)rotate(45 5 5)" fill="#eee" />
+                                            <rect x="-5" y="2.5" width="20" height="3.536"
+                                                transform="translate(10 0)rotate(45 5 5)" fill="#eee" />
+                                        </pattern>
+                                    </defs>
+                                    <rect x="0" y="0" width="16" height="16" fill="url(#stripes)" />
+
+                                    <g transform="translate(8, 8)scale(0.7, 0.7)translate(-8, -8)">
+                                        <text text-anchor="middle" x="8" y="13" style="font-size:14px;">R</text>
+                                        <!--<path fill-rule="evenodd" stroke="none" fill="currentColor"
+                                            d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z" />-->
                                     </g>
                                 </svg>
                             </button>
@@ -182,9 +222,21 @@
                             <g id="svgPixels">
 
                             </g>
+                            <g id="resizeFrame" style="visibility:hidden;">
+                                <rect id="resizeBox" x="0" y="0" width="100" height="100" fill="none"
+                                    stroke="hsl(122, 50%, 50%)" style="stroke-width:12.5px;" rx="12.5" ry="12.5" />
+                                <rect id="resizeBox2" x="0" y="0" width="100" height="100" fill="none"
+                                    stroke="hsl(122, 50%, 32%)" style="stroke-width:5px;" rx="12.5" ry="12.5" />
+                                <g id="handleRight">
+                                    <circle r="15" cx="0" cy="0" fill="hsl(122, 100%, 47%)" style="cursor:ew-resize;" />
+                                </g>
+                                <g id="handleBottom">
+                                    <circle r="15" cx="0" cy="0" fill="hsl(122, 100%, 47%)" style="cursor:ns-resize;" />
+                                </g>                                
+                            </g>
                         </g>
-                        <circle cx="0" cy="0" style="visibility:hidden;" r="30" fill="red" id="pointerVisual0"/>
-                        <circle cx="0" cy="0" style="visibility:hidden;" r="30" fill="green" id="pointerVisual1"/>
+                        <circle cx="0" cy="0" style="visibility:hidden;" r="30" fill="red" id="pointerVisual0" />
+                        <circle cx="0" cy="0" style="visibility:hidden;" r="30" fill="green" id="pointerVisual1" />
                     </g>
                     <!--</svg>-->
                 </svg>
